@@ -25,7 +25,16 @@ import { MOCK_USERS, MOCK_ORGANIZATIONS } from './services/mockData';
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('invoices');
   const [financialSubTab, setFinancialSubTab] = useState<FinancialSubTab>('trial-balance');
-  const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
+  const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlId = urlParams.get('invoiceId');
+      if (urlId) return urlId;
+      return localStorage.getItem('invparse_active_invoice_id') || '405045f8-fdb7-4f87-9754-4ab2b5ff7b26';
+    } catch {
+      return '405045f8-fdb7-4f87-9754-4ab2b5ff7b26';
+    }
+  });
   const [invoiceIdsList, setInvoiceIdsList] = useState<string[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>(() => apiService.getCachedOrgs() || MOCK_ORGANIZATIONS);
   const [activeOrgId, setActiveOrgId] = useState<string>(() => apiService.getActiveOrgId() || MOCK_ORGANIZATIONS[0].id);
@@ -185,6 +194,9 @@ export const App: React.FC = () => {
 
   const handleOpenReview = (invoiceId: string, allIds?: string[]) => {
     setActiveInvoiceId(invoiceId);
+    try {
+      localStorage.setItem('invparse_active_invoice_id', invoiceId);
+    } catch {}
     if (allIds && allIds.length > 0) {
       setInvoiceIdsList(allIds);
     }
@@ -195,6 +207,9 @@ export const App: React.FC = () => {
 
   const handleBackToInvoices = () => {
     setActiveInvoiceId(null);
+    try {
+      localStorage.removeItem('invparse_active_invoice_id');
+    } catch {}
     setInvoicesRefreshKey((k) => k + 1);
   };
 
