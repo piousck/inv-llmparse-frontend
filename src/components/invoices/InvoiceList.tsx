@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   Upload,
@@ -17,6 +17,9 @@ import {
   Eye,
   RefreshCw,
   Banknote,
+  Inbox,
+  FileSpreadsheet,
+  FolderKanban,
 } from 'lucide-react';
 
 import { InvoiceListItem, PaginatedInvoices, User } from '../../types/api';
@@ -24,8 +27,9 @@ import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency, cn } from '../../lib/utils';
 import { DocumentViewerModal } from './DocumentViewerModal';
+import { DocumentSubTab } from '../layout/Sidebar';
 
 interface InvoiceListProps {
   activeOrgId: string;
@@ -34,6 +38,8 @@ interface InvoiceListProps {
   onSelectInvoice: (invoiceId: string, allIds?: string[]) => void;
   onOpenUpload: (initialType?: 'invoice' | 'bank_statement') => void;
   onShowToast: (msg: string) => void;
+  documentSubTab?: DocumentSubTab;
+  onSelectDocumentSubTab?: (subTab: DocumentSubTab) => void;
 }
 
 export const InvoiceList: React.FC<InvoiceListProps> = ({
@@ -43,6 +49,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   onSelectInvoice,
   onOpenUpload,
   onShowToast,
+  documentSubTab = 'purchases',
+  onSelectDocumentSubTab,
 }) => {
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -60,9 +68,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   const [viewingDocument, setViewingDocument] = useState<InvoiceListItem | null>(null);
 
   useEffect(() => {
+    setPage(1);
+    setStatusFilter('all');
+  }, [documentSubTab]);
+
+  useEffect(() => {
     loadInvoices();
     setSelectedInvoiceIds([]);
-  }, [activeOrgId, statusFilter, searchTerm, page, pageSize, currentUser?.role, refreshKey]);
+  }, [activeOrgId, statusFilter, searchTerm, page, pageSize, currentUser?.role, refreshKey, documentSubTab]);
 
   // Auto-poll silently every 3.5 seconds while any invoice is in pending/processing state
   useEffect(() => {
@@ -76,13 +89,19 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     }, 3500);
 
     return () => clearInterval(interval);
-  }, [invoices, activeOrgId, statusFilter, searchTerm, page, pageSize]);
+  }, [invoices, activeOrgId, statusFilter, searchTerm, page, pageSize, documentSubTab]);
 
   const loadInvoices = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
+      let filterToUse: string | undefined = statusFilter;
+      if (documentSubTab === 'supplier_statements' && statusFilter === 'all') {
+        filterToUse = 'statements';
+      } else if (documentSubTab === 'other_documents' && statusFilter === 'all') {
+        filterToUse = 'other';
+      }
       const res: PaginatedInvoices = await apiService.getInvoices(activeOrgId, {
-        status_filter: statusFilter,
+        status_filter: filterToUse,
         search: searchTerm || undefined,
         page,
         page_size: pageSize,
@@ -97,16 +116,47 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     }
   };
 
+  const displayedInvoices = useMemo(() => {
+    if (documentSubTab === 'purchases') {
+      return invoices.filter(
+        (inv) =>
+          inv.processing_path !== 'bank_statement' &&
+          inv.processing_path !== 'supplier_statement' &&
+          inv.document_type !== 'bank_statement' &&
+          inv.document_type !== 'supplier_statement' &&
+          inv.document_type !== 'other_document' &&
+          inv.error_code !== 'OTHER_DOCUMENT'
+      );
+    }
+    if (documentSubTab === 'supplier_statements') {
+      return invoices.filter(
+        (inv) =>
+          inv.processing_path === 'supplier_statement' ||
+          inv.document_type === 'supplier_statement'
+      );
+    }
+    if (documentSubTab === 'other_documents') {
+      return invoices.filter(
+        (inv) =>
+          inv.error_code === 'OTHER_DOCUMENT' ||
+          inv.document_type === 'other_document' ||
+          inv.document_type === 'other' ||
+          inv.job_status === 'failed'
+      );
+    }
+    return invoices;
+  }, [invoices, documentSubTab]);
+
   const getRowId = (inv: InvoiceListItem) => (inv.invoice_id || inv.job_id);
 
-  const isAllSelected = invoices.length > 0 && invoices.every((inv) => selectedInvoiceIds.includes(getRowId(inv)));
+  const isAllSelected = displayedInvoices.length > 0 && displayedInvoices.every((inv) => selectedInvoiceIds.includes(getRowId(inv)));
   const isSomeSelected = selectedInvoiceIds.length > 0 && !isAllSelected;
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelectedInvoiceIds([]);
     } else {
-      setSelectedInvoiceIds(invoices.map(getRowId));
+      setSelectedInvoiceIds(displayedInvoices.map(getRowId));
     }
   };
 
@@ -272,32 +322,122 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     }
   };
 
-  const statusTabs = [
-    { id: 'all', label: 'All Documents' },
-    { id: 'needs_review', label: 'Needs Review' },
-    { id: 'unprocessed', label: 'Unprocessed' },
-    { id: 'partial', label: 'Partial Invoices' },
-    { id: 'completed', label: 'Approved' },
-    { id: 'other', label: 'Other Documents' },
-  ];
+  const statusTabs = useMemo(() => {
+    if (documentSubTab === 'supplier_statements') {
+      return [
+        { id: 'all', label: 'All Statements' },
+        { id: 'completed', label: 'Reconciled' },
+        { id: 'needs_review', label: 'Needs Review' },
+        { id: 'unprocessed', label: 'Pending Processing' },
+      ];
+    }
+    if (documentSubTab === 'other_documents') {
+      return [
+        { id: 'all', label: 'All Other Docs' },
+        { id: 'unprocessed', label: 'Unprocessed' },
+        { id: 'failed', label: 'Failed Ingestion' },
+      ];
+    }
+    return [
+      { id: 'all', label: 'All Purchases' },
+      { id: 'needs_review', label: 'Needs Review' },
+      { id: 'unprocessed', label: 'Unprocessed' },
+      { id: 'partial', label: 'Partial Invoices' },
+      { id: 'completed', label: 'Approved' },
+    ];
+  }, [documentSubTab]);
 
   return (
     <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col bg-background min-w-0 w-full max-w-full overflow-x-hidden">
+      {/* Top Document Category Switcher */}
+      <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs mb-3.5 shrink-0 overflow-x-auto">
+        <button
+          onClick={() => onSelectDocumentSubTab?.('purchases')}
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+            documentSubTab === 'purchases'
+              ? "bg-primary text-primary-foreground shadow-xs font-bold"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <Inbox className="w-3.5 h-3.5" />
+          <span>Purchases</span>
+        </button>
+
+        <button
+          onClick={() => onSelectDocumentSubTab?.('bank_statements')}
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+            documentSubTab === 'bank_statements'
+              ? "bg-primary text-primary-foreground shadow-xs font-bold"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <Landmark className="w-3.5 h-3.5" />
+          <span>Bank Statements</span>
+        </button>
+
+        <button
+          onClick={() => onSelectDocumentSubTab?.('supplier_statements')}
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+            documentSubTab === 'supplier_statements'
+              ? "bg-primary text-primary-foreground shadow-xs font-bold"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>Supplier Statements</span>
+        </button>
+
+        <button
+          onClick={() => onSelectDocumentSubTab?.('other_documents')}
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+            documentSubTab === 'other_documents'
+              ? "bg-primary text-primary-foreground shadow-xs font-bold"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          <FolderKanban className="w-3.5 h-3.5" />
+          <span>Other Documents</span>
+        </button>
+      </div>
+
       {/* Page Header */}
       <div className="flex items-center justify-between gap-3 mb-3.5 min-w-0 w-full shrink-0">
         <div className="min-w-0 flex-1">
           <h1 className="text-base font-bold tracking-tight text-foreground truncate">
-            Invoices & Accounts Payable
+            {documentSubTab === 'supplier_statements'
+              ? 'Supplier Statements & Reconciliations'
+              : documentSubTab === 'other_documents'
+              ? 'Other & Non-Accounting Documents'
+              : 'Purchases & Invoices'}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5 truncate hidden sm:block">
-            Automated OCR and visual LLM ingestion pipeline for purchase documents.
+            {documentSubTab === 'supplier_statements'
+              ? 'Periodic vendor account statements and ledger reconciliation against open purchases.'
+              : documentSubTab === 'other_documents'
+              ? 'Non-accounting files, contracts, correspondence, and miscellaneous attachments.'
+              : 'Automated OCR and visual LLM ingestion pipeline for purchase documents.'}
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="primary" size="sm" onClick={() => onOpenUpload('invoice')} className="gap-1.5 text-xs shrink-0 whitespace-nowrap h-8 px-3">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => onOpenUpload('invoice')}
+            className="gap-1.5 text-xs shrink-0 whitespace-nowrap h-8 px-3"
+          >
             <Upload className="w-3.5 h-3.5" />
-            <span>Upload Invoices</span>
+            <span>
+              {documentSubTab === 'supplier_statements'
+                ? 'Upload Statement'
+                : documentSubTab === 'other_documents'
+                ? 'Upload Document'
+                : 'Upload Invoices'}
+            </span>
           </Button>
         </div>
       </div>
@@ -460,20 +600,32 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                   <td colSpan={10} className="text-center py-12 text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs">Loading invoices...</span>
+                      <span className="text-xs">Loading documents...</span>
                     </div>
                   </td>
                 </tr>
-              ) : invoices.length === 0 ? (
+              ) : displayedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="text-center py-12 text-muted-foreground">
                     <FileText className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-                    <p className="font-medium text-foreground text-sm">No invoices found</p>
-                    <p className="text-[11px] mt-0.5">Upload an invoice to begin automated AI processing.</p>
+                    <p className="font-medium text-foreground text-sm">
+                      {documentSubTab === 'supplier_statements'
+                        ? 'No supplier statements found'
+                        : documentSubTab === 'other_documents'
+                        ? 'No other documents found'
+                        : 'No purchase invoices found'}
+                    </p>
+                    <p className="text-[11px] mt-0.5">
+                      {documentSubTab === 'supplier_statements'
+                        ? 'Upload a vendor statement to reconcile against purchases.'
+                        : documentSubTab === 'other_documents'
+                        ? 'Non-accounting files and contracts will appear here.'
+                        : 'Upload an invoice to begin automated AI processing.'}
+                    </p>
                   </td>
                 </tr>
               ) : (
-                invoices.map((inv) => {
+                displayedInvoices.map((inv) => {
                   const rowId = getRowId(inv);
                   const isSelected = selectedInvoiceIds.includes(rowId);
                   const gross = Number(inv.total_gross || 0);
@@ -492,14 +644,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                     <tr
                       key={rowId}
                       onClick={() => {
-                        if (inv.invoice_id) {
+                        if (inv.invoice_id && documentSubTab === 'purchases') {
                           onSelectInvoice(
                             inv.invoice_id,
-                            invoices.map((i) => i.invoice_id).filter(Boolean) as string[]
+                            displayedInvoices.map((i) => i.invoice_id).filter(Boolean) as string[]
                           );
                           return;
                         }
-                        // Open source document viewer for statements, failed uploads, and processing documents
+                        // Open source document viewer for statements, failed uploads, and non-purchases
                         setViewingDocument(inv);
                       }}
                       className={`cursor-pointer transition-colors ${

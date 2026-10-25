@@ -17,6 +17,9 @@ import {
   X,
   Layers,
   ArrowUpDown,
+  Inbox,
+  FileSpreadsheet,
+  FolderKanban,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -29,12 +32,14 @@ import {
   DuplicateQueueItemDto,
 } from '../../types/api';
 import { formatCurrency } from '../../lib/utils';
+import { DocumentSubTab } from '../layout/Sidebar';
 
 interface BankReconciliationViewProps {
   activeOrgId?: string;
   refreshKey?: number;
   onOpenUpload?: (initialType?: 'invoice' | 'bank_statement') => void;
   onShowToast: (msg: string) => void;
+  onSelectDocumentSubTab?: (subTab: DocumentSubTab) => void;
 }
 
 export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
@@ -42,6 +47,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
   refreshKey = 0,
   onOpenUpload,
   onShowToast,
+  onSelectDocumentSubTab,
 }) => {
   const [statements, setStatements] = useState<BankStatementDto[]>([]);
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
@@ -330,6 +336,41 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
 
   return (
     <div className="flex-1 p-6 md:p-8 flex flex-col bg-background gap-6 max-w-[1600px] w-full mx-auto">
+      {/* Top Document Category Switcher */}
+      <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs shrink-0 overflow-x-auto">
+        <button
+          onClick={() => onSelectDocumentSubTab?.('purchases')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <Inbox className="w-3.5 h-3.5" />
+          <span>Purchases</span>
+        </button>
+
+        <button
+          onClick={() => onSelectDocumentSubTab?.('bank_statements')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap bg-primary text-primary-foreground shadow-xs font-bold"
+        >
+          <Landmark className="w-3.5 h-3.5" />
+          <span>Bank Statements</span>
+        </button>
+
+        <button
+          onClick={() => onSelectDocumentSubTab?.('supplier_statements')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>Supplier Statements</span>
+        </button>
+
+        <button
+          onClick={() => onSelectDocumentSubTab?.('other_documents')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <FolderKanban className="w-3.5 h-3.5" />
+          <span>Other Documents</span>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

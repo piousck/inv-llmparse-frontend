@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, NavTab, FinancialSubTab } from './components/layout/Sidebar';
+import { Sidebar, NavTab, FinancialSubTab, DocumentSubTab } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
 import { InvoiceList } from './components/invoices/InvoiceList';
 import { ReviewHub } from './components/review/ReviewHub';
@@ -25,14 +25,15 @@ import { MOCK_USERS, MOCK_ORGANIZATIONS } from './services/mockData';
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('invoices');
   const [financialSubTab, setFinancialSubTab] = useState<FinancialSubTab>('trial-balance');
+  const [documentSubTab, setDocumentSubTab] = useState<DocumentSubTab>('purchases');
   const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(() => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const urlId = urlParams.get('invoiceId');
       if (urlId) return urlId;
-      return localStorage.getItem('invparse_active_invoice_id') || '405045f8-fdb7-4f87-9754-4ab2b5ff7b26';
+      return localStorage.getItem('invparse_active_invoice_id') || null;
     } catch {
-      return '405045f8-fdb7-4f87-9754-4ab2b5ff7b26';
+      return null;
     }
   });
   const [invoiceIdsList, setInvoiceIdsList] = useState<string[]>([]);
@@ -50,11 +51,27 @@ export const App: React.FC = () => {
   const [bankRefreshKey, setBankRefreshKey] = useState<number>(0);
   const [invoicesRefreshKey, setInvoicesRefreshKey] = useState<number>(0);
 
+  const handleSelectDocumentSubTab = (subTab: DocumentSubTab) => {
+    setDocumentSubTab(subTab);
+    if (subTab === 'bank_statements') {
+      setCurrentTab('bank');
+      setActiveInvoiceId(null);
+    } else {
+      setCurrentTab('invoices');
+      setActiveInvoiceId(null);
+    }
+  };
+
   const handleOpenUpload = (initialType?: 'invoice' | 'bank_statement') => {
-    const selectedType = initialType || (currentTab === 'bank' ? 'bank_statement' : 'invoice');
+    const selectedType =
+      initialType ||
+      (currentTab === 'bank' || documentSubTab === 'bank_statements'
+        ? 'bank_statement'
+        : 'invoice');
     setUploadInitialType(selectedType);
     if (selectedType === 'bank_statement') {
       setCurrentTab('bank');
+      setDocumentSubTab('bank_statements');
       setActiveInvoiceId(null);
     }
     setIsUploadOpen(true);
@@ -200,6 +217,7 @@ export const App: React.FC = () => {
     if (allIds && allIds.length > 0) {
       setInvoiceIdsList(allIds);
     }
+    setDocumentSubTab('purchases');
     setCurrentTab('invoices');
     // Auto-collapse sidebar to mini rail on review view to maximize horizontal space for data table
     setIsSidebarOpen(false);
@@ -217,10 +235,16 @@ export const App: React.FC = () => {
 
   // Tab Breadcrumbs
   const tabTitles: Record<NavTab, string> = {
-    invoices: activeInvoiceId ? 'Purchases / Invoice Review' : 'Purchases / All Invoices',
+    invoices: activeInvoiceId
+      ? 'Documents / Purchases / Invoice Review'
+      : documentSubTab === 'supplier_statements'
+      ? 'Documents / Supplier Statements'
+      : documentSubTab === 'other_documents'
+      ? 'Documents / Other Documents'
+      : 'Documents / Purchases',
     dashboard: 'Dashboard / Overview',
     sales: 'Sales / Receivables',
-    bank: 'Bank / Statement Reconciliation',
+    bank: 'Documents / Bank Statements',
     financials:
       financialSubTab === 'formatted-tb'
         ? 'Financials / Formatted Trial Balance'
@@ -268,6 +292,8 @@ export const App: React.FC = () => {
               setIsSidebarOpen(false);
             }
           }}
+          activeDocumentSubTab={documentSubTab}
+          onSelectDocumentSubTab={handleSelectDocumentSubTab}
           onOpenUpload={(type) => handleOpenUpload(type)}
           currentUser={currentUser}
           mode={mode}
@@ -328,6 +354,8 @@ export const App: React.FC = () => {
                       onSelectInvoice={handleOpenReview}
                       onOpenUpload={(type) => handleOpenUpload(type || 'invoice')}
                       onShowToast={showToast}
+                      documentSubTab={documentSubTab}
+                      onSelectDocumentSubTab={handleSelectDocumentSubTab}
                     />
                   )}
                 </>
@@ -348,6 +376,7 @@ export const App: React.FC = () => {
                   refreshKey={bankRefreshKey}
                   onOpenUpload={(type) => handleOpenUpload(type || 'bank_statement')}
                   onShowToast={showToast}
+                  onSelectDocumentSubTab={handleSelectDocumentSubTab}
                 />
               )}
               {currentTab === 'financials' && (

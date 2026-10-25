@@ -882,10 +882,10 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
             size="sm"
             onClick={onBack}
             className="h-7.5 px-2.5 gap-1.5 text-xs font-semibold shrink-0"
-            title="Back to Invoices list"
+            title="Back to Purchases list"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Invoices</span>
+            <span className="hidden sm:inline">Purchases</span>
           </Button>
 
           {/* Next & Previous Navigation Bar */}

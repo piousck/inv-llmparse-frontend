@@ -11,7 +11,6 @@ import {
   BarChart3,
   Settings,
   PlusCircle,
-  FileText,
   HelpCircle,
   MoreVertical,
   LogOut,
@@ -22,6 +21,9 @@ import {
   ChevronDown,
   ChevronRight,
   X,
+  Files,
+  FileSpreadsheet,
+  FolderKanban,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { User } from '../../types/api';
@@ -41,6 +43,12 @@ export type NavTab =
 
 export type FinancialSubTab = 'trial-balance' | 'formatted-tb' | 'pnl';
 
+export type DocumentSubTab =
+  | 'purchases'
+  | 'bank_statements'
+  | 'supplier_statements'
+  | 'other_documents';
+
 interface SidebarProps {
   isOpen?: boolean;
   onCloseMobile?: () => void;
@@ -48,6 +56,8 @@ interface SidebarProps {
   onSelectTab: (tab: NavTab) => void;
   activeFinancialSubTab?: FinancialSubTab;
   onSelectFinancialSubTab?: (subTab: FinancialSubTab) => void;
+  activeDocumentSubTab?: DocumentSubTab;
+  onSelectDocumentSubTab?: (subTab: DocumentSubTab) => void;
   onOpenUpload?: (initialType?: 'invoice' | 'bank_statement') => void;
   currentUser?: User | null;
   mode: 'mock' | 'live';
@@ -62,6 +72,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   activeFinancialSubTab = 'trial-balance',
   onSelectFinancialSubTab,
+  activeDocumentSubTab = 'purchases',
+  onSelectDocumentSubTab,
   onOpenUpload,
   currentUser,
   mode,
@@ -69,14 +81,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAuth,
 }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const [isDocumentsOpen, setIsDocumentsOpen] = React.useState(true);
   const [isFinancialsOpen, setIsFinancialsOpen] = React.useState(true);
 
   const mainNav = [
     { id: 'dashboard' as NavTab, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'invoices' as NavTab, label: 'Lifecycle (Purchases)', icon: Inbox, badge: 'Core' },
+    {
+      id: 'invoices' as NavTab,
+      label: 'Documents',
+      icon: Files,
+      badge: 'Core',
+      subItems: [
+        { id: 'purchases' as DocumentSubTab, label: 'Purchases', icon: Inbox },
+        { id: 'bank_statements' as DocumentSubTab, label: 'Bank Statements', icon: Landmark },
+        { id: 'supplier_statements' as DocumentSubTab, label: 'Supplier Statements', icon: FileSpreadsheet },
+        { id: 'other_documents' as DocumentSubTab, label: 'Other Documents', icon: FolderKanban },
+      ],
+    },
     { id: 'reports' as NavTab, label: 'Analytics', icon: BarChart3 },
     { id: 'sales' as NavTab, label: 'Sales & Revenue', icon: CreditCard },
-    { id: 'bank' as NavTab, label: 'Bank Statements', icon: Landmark },
     {
       id: 'financials' as NavTab,
       label: 'Financial statements',
@@ -89,13 +112,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     { id: 'suppliers' as NavTab, label: 'Suppliers Master', icon: Building2 },
     { id: 'coa' as NavTab, label: 'Chart of Accounts (GL)', icon: BookOpen },
-    { id: 'users' as NavTab, label: 'Team & Roles', icon: Users },
-  ];
-
-  const documentNav = [
-    { id: 'coa' as NavTab, label: 'Chart of Accounts', icon: BookOpen },
     { id: 'vat' as NavTab, label: 'Irish VAT (Sec 60)', icon: Percent },
-    { id: 'invoices' as NavTab, label: 'Active Proposals', icon: FileText },
+    { id: 'users' as NavTab, label: 'Team & Roles', icon: Users },
   ];
 
   return (
@@ -207,8 +225,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {mainNav.map((item) => {
             const Icon = item.icon;
-            const isActive = currentTab === item.id;
+            const isItemActive =
+              item.id === 'invoices'
+                ? currentTab === 'invoices' || currentTab === 'bank'
+                : currentTab === item.id;
             const hasSubItems = 'subItems' in item && Boolean(item.subItems);
+            const isSubOpen = item.id === 'invoices' ? isDocumentsOpen : isFinancialsOpen;
 
             if (!isOpen) {
               return (
@@ -219,21 +241,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onOpenAuth('login');
                       return;
                     }
-                    onSelectTab(item.id);
-                    if (item.id === 'financials' && onSelectFinancialSubTab && !activeFinancialSubTab) {
-                      onSelectFinancialSubTab('trial-balance');
+                    if (item.id === 'invoices') {
+                      if (activeDocumentSubTab === 'bank_statements') {
+                        onSelectTab('bank');
+                      } else {
+                        onSelectTab('invoices');
+                        onSelectDocumentSubTab?.(activeDocumentSubTab || 'purchases');
+                      }
+                    } else if (item.id === 'financials') {
+                      onSelectTab('financials');
+                      if (onSelectFinancialSubTab && !activeFinancialSubTab) {
+                        onSelectFinancialSubTab('trial-balance');
+                      }
+                    } else {
+                      onSelectTab(item.id);
                     }
                   }}
                   className={cn(
                     "size-10 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0",
-                    isActive
+                    isItemActive
                       ? "bg-sidebar-accent text-primary shadow-2xs font-semibold ring-1 ring-primary/25"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                   )}
                   title={item.label}
                   aria-label={item.label}
                 >
-                  <Icon className={cn("size-5 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <Icon className={cn("size-5 shrink-0", isItemActive ? "text-primary" : "text-muted-foreground")} />
                 </button>
               );
             }
@@ -246,7 +279,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onOpenAuth('login');
                       return;
                     }
-                    if (item.id === 'financials') {
+                    if (item.id === 'invoices') {
+                      setIsDocumentsOpen(!isDocumentsOpen);
+                      if (currentTab !== 'invoices' && currentTab !== 'bank') {
+                        onSelectTab('invoices');
+                        onSelectDocumentSubTab?.(activeDocumentSubTab || 'purchases');
+                      }
+                    } else if (item.id === 'financials') {
                       setIsFinancialsOpen(!isFinancialsOpen);
                       onSelectTab('financials');
                       if (onSelectFinancialSubTab && !activeFinancialSubTab) {
@@ -258,13 +297,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   className={cn(
                     'flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium transition-all text-left w-full cursor-pointer',
-                    isActive
+                    isItemActive
                       ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-2xs'
                       : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                   )}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={cn('size-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                    <Icon className={cn('size-4 shrink-0', isItemActive ? 'text-primary' : 'text-muted-foreground')} />
                     <span className="truncate">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -275,7 +314,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     )}
                     {hasSubItems && (
                       <span className="text-muted-foreground">
-                        {isFinancialsOpen ? (
+                        {isSubOpen ? (
                           <ChevronDown className="size-3.5" />
                         ) : (
                           <ChevronRight className="size-3.5" />
@@ -285,12 +324,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </button>
 
-                {/* Sub-items for Financial statements */}
-                {hasSubItems && isFinancialsOpen && (
+                {/* Sub-items for Documents & Financial statements */}
+                {hasSubItems && isSubOpen && (
                   <div className="ml-5 pl-2 border-l border-sidebar-border/70 flex flex-col gap-0.5 mt-0.5 mb-1">
                     {item.subItems?.map((sub) => {
                       const SubIcon = sub.icon;
-                      const isSubActive = isActive && activeFinancialSubTab === sub.id;
+                      const isSubActive =
+                        item.id === 'invoices'
+                          ? (sub.id === 'bank_statements' && currentTab === 'bank') ||
+                            (currentTab === 'invoices' && activeDocumentSubTab === sub.id)
+                          : isItemActive && activeFinancialSubTab === sub.id;
                       return (
                         <button
                           key={sub.id}
@@ -300,8 +343,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               onOpenAuth('login');
                               return;
                             }
-                            onSelectTab('financials');
-                            onSelectFinancialSubTab?.(sub.id);
+                            if (item.id === 'invoices') {
+                              if (sub.id === 'bank_statements') {
+                                onSelectTab('bank');
+                                onSelectDocumentSubTab?.('bank_statements');
+                              } else {
+                                onSelectTab('invoices');
+                                onSelectDocumentSubTab?.(sub.id as DocumentSubTab);
+                              }
+                            } else {
+                              onSelectTab('financials');
+                              onSelectFinancialSubTab?.(sub.id as FinancialSubTab);
+                            }
                           }}
                           className={cn(
                             'flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors text-left w-full cursor-pointer',
@@ -323,70 +376,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-
-        {/* Documents Section */}
-        <div className={cn("flex flex-col gap-1 w-full", !isOpen && "items-center")}>
-          {isOpen ? (
-            <span className="text-xs font-semibold text-muted-foreground px-2 py-1 uppercase tracking-wider">
-              Documents
-            </span>
-          ) : (
-            <div className="w-8 h-px bg-sidebar-border/60 my-0.5" />
-          )}
-          {documentNav.map((item, idx) => {
-            const Icon = item.icon;
-            const isActive = currentTab === item.id;
-
-            if (!isOpen) {
-              return (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    if (!currentUser && onOpenAuth) {
-                      onOpenAuth('login');
-                    } else {
-                      onSelectTab(item.id);
-                    }
-                  }}
-                  className={cn(
-                    "size-10 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0",
-                    isActive
-                      ? "bg-sidebar-accent text-primary shadow-2xs font-semibold ring-1 ring-primary/25"
-                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                  )}
-                  title={item.label}
-                  aria-label={item.label}
-                >
-                  <Icon className={cn("size-5 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
-                </button>
-              );
-            }
-
-            return (
-              <button
-                key={idx}
-                onClick={() => {
-                  if (!currentUser && onOpenAuth) {
-                    onOpenAuth('login');
-                  } else {
-                    onSelectTab(item.id);
-                  }
-                }}
-                className={cn(
-                  'flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium transition-all text-left w-full cursor-pointer',
-                  isActive
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-2xs'
-                    : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                )}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Icon className={cn('size-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                  <span className="truncate">{item.label}</span>
-                </div>
-              </button>
             );
           })}
         </div>
