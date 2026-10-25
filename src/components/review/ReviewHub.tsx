@@ -20,7 +20,7 @@ import {
   X,
   MoreVertical,
 } from 'lucide-react';
-import { InvoiceDetail, LineItem } from '../../types/api';
+import { InvoiceDetail, LineItem, OrganizationGLAccount } from '../../types/api';
 import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -69,6 +69,23 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
   const [isReocring, setIsReocring] = useState<boolean>(false);
   const [mobileViewTab, setMobileViewTab] = useState<'canvas' | 'lines' | 'inspector'>('lines');
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState<boolean>(false);
+  const [glAccounts, setGlAccounts] = useState<OrganizationGLAccount[]>([]);
+
+  useEffect(() => {
+    const loadGLAccounts = async () => {
+      const orgId = activeOrgId || invoice?.organization_id || apiService.getActiveOrgId();
+      if (!orgId) return;
+      try {
+        const accounts = await apiService.getOrganizationGLAccounts(orgId);
+        if (accounts && accounts.length > 0) {
+          setGlAccounts(accounts);
+        }
+      } catch (err) {
+        console.warn('Failed to load GL accounts in ReviewHub:', err);
+      }
+    };
+    loadGLAccounts();
+  }, [activeOrgId, invoice?.organization_id]);
 
   // Height alignment: align LineItemInspector bottom with the reconciliation summary box
   const reconcileBoxRef = useRef<HTMLDivElement>(null);
@@ -1274,6 +1291,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                 expectedNet={invoice.total_net}
                 isDocExpanded={isCanvasExpanded}
                 onRestoreNormalWidth={() => setIsCanvasExpanded(false)}
+                glAccounts={glAccounts}
               />
             </div>
           </div>
@@ -1288,6 +1306,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
               isForeignPurchase={isForeignPurchase}
               currency={invoice.currency}
               isLocked={isLocked}
+              glAccounts={glAccounts}
             />
           </div>
 
@@ -1303,6 +1322,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
               currency={invoice.currency}
               isLocked={isLocked}
               style={inspectorHeight ? { height: `${inspectorHeight}px` } : undefined}
+              glAccounts={glAccounts}
             />
           </div>
         </div>
@@ -1338,6 +1358,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
               isForeignPurchase={isForeignPurchase}
               currency={invoice.currency}
               isLocked={isLocked}
+              glAccounts={glAccounts}
             />
           </aside>
         )}

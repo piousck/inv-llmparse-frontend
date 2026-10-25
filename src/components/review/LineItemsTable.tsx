@@ -13,7 +13,7 @@ import {
   Sparkles,
   Truck,
 } from 'lucide-react';
-import { LineItem, IRISH_VAT_RATES, XERO_ACCOUNT_CODES } from '../../types/api';
+import { LineItem, IRISH_VAT_RATES, XERO_ACCOUNT_CODES, OrganizationGLAccount } from '../../types/api';
 import { formatCurrency, cn } from '../../lib/utils';
 import { Button } from '../ui/Button';
 
@@ -33,6 +33,7 @@ interface LineItemsTableProps {
   expectedNet?: number;
   isDocExpanded?: boolean;
   onRestoreNormalWidth?: () => void;
+  glAccounts?: OrganizationGLAccount[];
 }
 
 export const LineItemsTable: React.FC<LineItemsTableProps> = ({
@@ -49,7 +50,42 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
   expectedGross,
   isDocExpanded = false,
   onRestoreNormalWidth,
+  glAccounts,
 }) => {
+  const availableAccounts = React.useMemo(() => {
+    const list: { code: string; name: string; category?: string }[] = [];
+    const seen = new Set<string>();
+
+    if (glAccounts && glAccounts.length > 0) {
+      for (const a of glAccounts) {
+        if (a.is_active !== false && !seen.has(a.code)) {
+          seen.add(a.code);
+          list.push({ code: a.code, name: a.name, category: a.category });
+        }
+      }
+    } else {
+      for (const a of XERO_ACCOUNT_CODES) {
+        if (!seen.has(a.code)) {
+          seen.add(a.code);
+          list.push({ code: a.code, name: a.name, category: a.category });
+        }
+      }
+    }
+
+    // Ensure any current line item code is included even if custom
+    for (const item of lineItems) {
+      if (item.xero_account_code && !seen.has(item.xero_account_code)) {
+        seen.add(item.xero_account_code);
+        list.push({
+          code: item.xero_account_code,
+          name: item.xero_expense_category || 'Custom Account',
+          category: item.xero_expense_category || 'Operating Expense',
+        });
+      }
+    }
+
+    return list.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+  }, [glAccounts, lineItems]);
   const handleRateChange = (index: number, vatCode: string) => {
     const rateDef = IRISH_VAT_RATES.find((r) => r.code === vatCode);
     const item = lineItems[index];
@@ -387,13 +423,15 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                 {/* Nominal Ledger GL Code Selector (compact h-7, text-[11px]) */}
                 <div className={cn(isDocExpanded ? "w-16 shrink-0" : "w-44 sm:w-52 shrink-0")}>
                   <select
-                    value={item.xero_account_code}
+                    value={item.xero_account_code || ''}
                     disabled={isLocked}
                     onChange={(e) => {
                       const newCode = e.target.value;
+                      const selected = availableAccounts.find((x) => x.code === newCode);
                       const isS60 = newCode === '413';
                       onChangeLineItem(idx, {
                         xero_account_code: newCode,
+                        xero_expense_category: selected ? selected.category : item.xero_expense_category,
                         vat_deductible: !isS60,
                         vat_code: isS60 ? 'TN' : item.vat_code === 'TN' ? 'T23' : item.vat_code,
                       });
@@ -418,7 +456,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                         : "Nominal Ledger GL Account Code"
                     }
                   >
-                    {XERO_ACCOUNT_CODES.map((acc) => (
+                    {availableAccounts.map((acc) => (
                       <option key={acc.code} value={acc.code} title={`${acc.code} - ${acc.name}`}>
                         {isDocExpanded ? acc.code : `${acc.code} - ${acc.name}`}
                       </option>

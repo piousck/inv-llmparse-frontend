@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LineItem, XERO_ACCOUNT_CODES, IRISH_VAT_RATES } from '../../types/api';
+import { LineItem, XERO_ACCOUNT_CODES, IRISH_VAT_RATES, OrganizationGLAccount } from '../../types/api';
 import { Badge } from '../ui/Badge';
 import { formatCurrency } from '../../lib/utils';
 import { Sparkles, HelpCircle, PanelRightClose, PanelRightOpen, Users, ShoppingCart, AlertTriangle, Globe, Lock, CheckCircle2, ShieldAlert } from 'lucide-react';
@@ -14,6 +14,7 @@ interface LineItemInspectorProps {
   isLocked?: boolean;
   style?: React.CSSProperties;
   inspectorRef?: React.Ref<HTMLElement>;
+  glAccounts?: OrganizationGLAccount[];
 }
 
 export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
@@ -26,6 +27,7 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
   isLocked = false,
   style,
   inspectorRef,
+  glAccounts,
 }) => {
   const [internalOpen, setInternalOpen] = useState<boolean>(true);
   const isExpanded = controlledIsOpen !== undefined ? controlledIsOpen : internalOpen;
@@ -83,7 +85,10 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
   }
 
   // --- Expanded State ---
-  const xeroDef = item ? XERO_ACCOUNT_CODES.find((x) => x.code === item.xero_account_code) : null;
+  const xeroDef = item
+    ? (glAccounts?.find((x) => x.code === item.xero_account_code) ||
+       XERO_ACCOUNT_CODES.find((x) => x.code === item.xero_account_code))
+    : null;
   const vatDef = item ? IRISH_VAT_RATES.find((v) => v.code === item.vat_code) : null;
   const conf = item?.confidence || 0.95;
 
@@ -276,10 +281,10 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
             </span>
             <div className="p-2.5 rounded-lg bg-muted/40 border border-border">
               <div className="font-normal text-foreground font-mono text-xs">
-                {item.xero_account_code} · {xeroDef?.name || 'Custom Account'}
+                {item.xero_account_code} · {xeroDef?.name || item.xero_expense_category || 'Custom Account'}
               </div>
               <div className="text-[11px] text-muted-foreground mt-0.5">
-                Category: {xeroDef?.category || 'General Expense'}
+                Category: {xeroDef?.category || item.xero_expense_category || 'General Expense'}
               </div>
             </div>
           </div>
