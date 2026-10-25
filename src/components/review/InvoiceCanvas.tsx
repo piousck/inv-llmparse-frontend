@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
 import {
   FileText,
   Upload,
-  Maximize2,
+  ArrowLeftRight,
   Minimize2,
   ChevronDown,
   Check,
@@ -326,15 +326,18 @@ export const InvoiceCanvas: React.FC<InvoiceCanvasProps> = ({
             <Minimize2 className="w-3.5 h-3.5" />
           </button>
 
-          {/* Fullscreen / Expand Canvas Button [ ⛶ ] */}
+          {/* Document Canvas Expander Button (Horizontal Arrows) */}
           {onToggleExpand && (
             <button
               type="button"
               onClick={onToggleExpand}
-              className="size-7 inline-flex items-center justify-center rounded-md border border-border/80 bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-              title={isExpanded ? 'Restore Normal Width' : 'Expand Document Canvas'}
+              className={cn(
+                "size-7 inline-flex items-center justify-center rounded-md border border-border/80 bg-card hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors",
+                isExpanded && "bg-primary/10 border-primary/40 text-primary"
+              )}
+              title={isExpanded ? 'Restore Normal Width (or click Line Items)' : 'Expand Document Canvas'}
             >
-              <Maximize2 className="w-3.5 h-3.5" />
+              <ArrowLeftRight className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

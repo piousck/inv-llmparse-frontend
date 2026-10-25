@@ -1153,12 +1153,12 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
           </button>
         </div>
 
-        {/* 2-Pane Split Workspace (Default 40% Document / 60% Extracted Data) */}
+        {/* 2-Pane Split Workspace (Default 40% Document / 60% Extracted Data, Expanded 50% / 50%) */}
         <div
           className={cn(
             "grid grid-cols-1 gap-3 flex-1 min-h-0 overflow-hidden transition-all duration-200",
             isCanvasExpanded
-              ? "lg:grid-cols-[65fr_35fr]"
+              ? "lg:grid-cols-[50fr_50fr] 2xl:grid-cols-[50fr_50fr]"
               : "lg:grid-cols-[40fr_60fr] 2xl:grid-cols-[38fr_42fr_20fr]"
           )}
         >
@@ -1191,8 +1191,14 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
 
           {/* Right Column: Line Items & Sticky Reconciliation */}
           <div
+            onClick={() => {
+              if (isCanvasExpanded) {
+                setIsCanvasExpanded(false);
+              }
+            }}
             className={cn(
-              "h-full min-h-0 flex flex-col overflow-hidden gap-2",
+              "h-full min-h-0 flex flex-col overflow-hidden gap-2 transition-all",
+              isCanvasExpanded && "cursor-pointer",
               mobileViewTab !== 'lines' && "hidden lg:flex"
             )}
           >
@@ -1266,6 +1272,8 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                 expectedGross={invoice.total_gross}
                 expectedVat={invoice.total_vat}
                 expectedNet={invoice.total_net}
+                isDocExpanded={isCanvasExpanded}
+                onRestoreNormalWidth={() => setIsCanvasExpanded(false)}
               />
             </div>
           </div>
@@ -1284,7 +1292,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
           </div>
 
           {/* Right Column: In-flow Line Item Inspector for wide screens (≥ 1536px / 2xl) */}
-          <div className="hidden 2xl:block">
+          <div className={cn("hidden", !isCanvasExpanded && "2xl:block")}>
             <LineItemInspector
               inspectorRef={inspectorRef}
               item={selectedItem}
@@ -1300,7 +1308,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
         </div>
 
         {/* Floating Right-Side Slide-over Inspector for Laptop screens (1024px to 1535px) */}
-        {isInspectorOpen && (
+        {isInspectorOpen && !isCanvasExpanded && (
           <aside
             aria-label="Line Item Inspector Panel"
             className="hidden lg:flex 2xl:hidden fixed top-12 right-0 bottom-0 z-40 w-88 bg-card border-l border-border shadow-2xl animate-in slide-in-from-right duration-200 flex-col overflow-y-auto p-4"

@@ -31,6 +31,8 @@ interface LineItemsTableProps {
   expectedGross?: number;
   expectedVat?: number;
   expectedNet?: number;
+  isDocExpanded?: boolean;
+  onRestoreNormalWidth?: () => void;
 }
 
 export const LineItemsTable: React.FC<LineItemsTableProps> = ({
@@ -45,6 +47,8 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
   capitalizationThreshold = 500,
   isLocked = false,
   expectedGross,
+  isDocExpanded = false,
+  onRestoreNormalWidth,
 }) => {
   const handleRateChange = (index: number, vatCode: string) => {
     const rateDef = IRISH_VAT_RATES.find((r) => r.code === vatCode);
@@ -234,7 +238,17 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
   }, 0)).toFixed(2);
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-xl border border-border shadow-xs overflow-hidden min-w-0">
+    <div
+      onClick={() => {
+        if (isDocExpanded && onRestoreNormalWidth) {
+          onRestoreNormalWidth();
+        }
+      }}
+      className={cn(
+        "flex flex-col h-full bg-card rounded-xl border border-border shadow-xs overflow-hidden min-w-0 transition-all",
+        isDocExpanded && "cursor-pointer"
+      )}
+    >
       {/* Table Header / Action */}
       <div className="h-10 shrink-0 flex items-center justify-between px-3.5 border-b border-border bg-card/80 backdrop-blur-xs select-none">
         <div className="flex items-center gap-2">
@@ -261,7 +275,9 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
       <div className="h-7 shrink-0 px-3 flex items-center gap-2 border-b border-border bg-muted/40 text-[10px] font-bold text-muted-foreground uppercase tracking-wider select-none">
         <div className="w-7 shrink-0 text-center">#</div>
         <div className="flex-1 min-w-0">Item Description</div>
-        <div className="w-44 sm:w-52 shrink-0">GL Account</div>
+        <div className={cn(isDocExpanded ? "w-16 shrink-0 text-center" : "w-44 sm:w-52 shrink-0")}>
+          {isDocExpanded ? "GL" : "GL Account"}
+        </div>
         <div className="w-20 shrink-0 text-right pr-1">Net</div>
       </div>
 
@@ -317,7 +333,10 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
           return (
             <div
               key={item.id || idx}
-              onClick={() => onSelectIndex(idx)}
+              onClick={() => {
+                if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
+                onSelectIndex(idx);
+              }}
               className={cn(
                 "px-3 py-1.5 transition-all cursor-pointer group flex flex-col gap-1",
                 isSelected
@@ -349,8 +368,12 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                     disabled={isLocked}
                     placeholder="Line description..."
                     onChange={(e) => onChangeLineItem(idx, { description: e.target.value })}
-                    onFocus={() => onSelectIndex(idx)}
+                    onFocus={() => {
+                      if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
+                      onSelectIndex(idx);
+                    }}
                     onClick={(e) => {
+                      if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
                       e.stopPropagation();
                       onSelectIndex(idx);
                     }}
@@ -362,7 +385,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                 </div>
 
                 {/* Nominal Ledger GL Code Selector (compact h-7, text-[11px]) */}
-                <div className="w-44 sm:w-52 shrink-0">
+                <div className={cn(isDocExpanded ? "w-16 shrink-0" : "w-44 sm:w-52 shrink-0")}>
                   <select
                     value={item.xero_account_code}
                     disabled={isLocked}
@@ -375,20 +398,29 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                         vat_code: isS60 ? 'TN' : item.vat_code === 'TN' ? 'T23' : item.vat_code,
                       });
                     }}
-                    onFocus={() => onSelectIndex(idx)}
+                    onFocus={() => {
+                      if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
+                      onSelectIndex(idx);
+                    }}
                     onClick={(e) => {
+                      if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
                       e.stopPropagation();
                       onSelectIndex(idx);
                     }}
                     className={cn(
-                      "w-full px-2 py-0.5 h-7 text-[11px] font-normal text-foreground bg-card border border-border rounded focus:border-primary cursor-pointer truncate",
+                      "w-full px-1.5 py-0.5 h-7 text-[11px] font-normal text-foreground bg-card border border-border rounded focus:border-primary cursor-pointer truncate",
+                      isDocExpanded ? "text-center font-mono font-semibold px-1" : "",
                       isLocked && "cursor-pointer pointer-events-none opacity-80 bg-muted/40 border-border/50"
                     )}
-                    title="Nominal Ledger GL Account Code"
+                    title={
+                      isDocExpanded
+                        ? `GL Account: ${item.xero_account_code || ''} (${item.xero_expense_category || ''})`
+                        : "Nominal Ledger GL Account Code"
+                    }
                   >
                     {XERO_ACCOUNT_CODES.map((acc) => (
-                      <option key={acc.code} value={acc.code}>
-                        {acc.code} - {acc.name}
+                      <option key={acc.code} value={acc.code} title={`${acc.code} - ${acc.name}`}>
+                        {isDocExpanded ? acc.code : `${acc.code} - ${acc.name}`}
                       </option>
                     ))}
                   </select>
@@ -402,8 +434,12 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                     value={item.net_amount}
                     disabled={isLocked}
                     onChange={(e) => handleNetAmountChange(idx, parseFloat(e.target.value) || 0)}
-                    onFocus={() => onSelectIndex(idx)}
+                    onFocus={() => {
+                      if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
+                      onSelectIndex(idx);
+                    }}
                     onClick={(e) => {
+                      if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
                       e.stopPropagation();
                       onSelectIndex(idx);
                     }}
