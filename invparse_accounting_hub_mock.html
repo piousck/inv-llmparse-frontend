@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InvParse Invoice Review Mock</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:#f5f7fb; color:#172033; }
+  button, select, input { font: inherit; }
+  .app { display:flex; min-height:100vh; }
+  .sidebar { width:220px; background:#fff; border-right:1px solid #e6e9ef; padding:18px 14px; flex-shrink:0; }
+  .brand { display:flex; align-items:center; gap:10px; padding:7px 10px 22px; font-weight:800; }
+  .brand-icon { width:31px; height:31px; border-radius:8px; background:#1667e8; color:#fff; display:grid; place-items:center; font-size:16px; }
+  .nav { display:flex; flex-direction:column; gap:5px; }
+  .nav button { border:0; background:transparent; text-align:left; padding:11px 12px; border-radius:8px; color:#586174; cursor:pointer; font-weight:600; width:100%; }
+  .nav button.active { background:#eaf2ff; color:#135dd1; }
+  .nav button:hover { background:#f1f4f8; }
+  .main { flex:1; min-width:0; }
+  .topbar { height:65px; background:#fff; border-bottom:1px solid #e6e9ef; display:flex; align-items:center; justify-content:space-between; padding:0 24px; }
+  .crumb { color:#7a8393; font-size:14px; }
+  .crumb strong { color:#172033; }
+  .actions { display:flex; gap:9px; }
+  .btn { border:1px solid #d9dfe8; background:#fff; color:#313b4d; padding:9px 13px; border-radius:8px; cursor:pointer; font-weight:700; }
+  .btn.primary { background:#1667e8; color:#fff; border-color:#1667e8; }
+  .btn.success { background:#13966d; color:#fff; border-color:#13966d; }
+  .btn.danger { color:#b42318; border-color:#efc1bd; }
+  .workflow { padding:16px 24px 9px; display:flex; align-items:center; gap:13px; background:#fff; border-bottom:1px solid #e6e9ef; }
+  .step { display:flex; align-items:center; gap:8px; color:#8992a3; font-size:13px; font-weight:700; }
+  .circle { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; border:1px solid #cfd6e2; }
+  .step.done, .step.current { color:#1461db; }
+  .step.done .circle, .step.current .circle { background:#1461db; color:#fff; border-color:#1461db; }
+  .line { height:1px; background:#dfe4eb; width:90px; }
+  .content { padding:20px 24px 30px; }
+  .header-row { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin-bottom:16px; }
+  h1 { margin:0 0 4px; font-size:24px; letter-spacing:-.02em; }
+  .subtitle { color:#747e8e; font-size:13px; }
+  .badge { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; font-size:12px; font-weight:800; background:#e8f8f2; color:#08754f; }
+  .review-grid { display:grid; grid-template-columns: 1.1fr 1.3fr 240px; gap:14px; }
+  .card { background:#fff; border:1px solid #e3e7ee; border-radius:10px; overflow:hidden; }
+  .card-head { padding:13px 14px; border-bottom:1px solid #eceff4; display:flex; justify-content:space-between; align-items:center; }
+  .card-head strong { font-size:13px; }
+  .card-body { padding:14px; }
+  .invoice-paper { background:#fff; border:1px solid #dce1e9; min-height:585px; padding:25px; box-shadow:0 3px 12px rgba(22,32,51,.06); }
+  .inv-top { display:flex; justify-content:space-between; gap:20px; border-bottom:1px solid #e2e5eb; padding-bottom:18px; }
+  .vendor { font-weight:800; font-size:17px; }
+  .small { font-size:11px; color:#6d7788; line-height:1.6; }
+  .inv-no { text-align:right; }
+  .inv-table { width:100%; border-collapse:collapse; margin-top:22px; font-size:11px; }
+  .inv-table th { color:#7a8390; text-align:left; border-bottom:1px solid #dde2e9; padding:6px 4px; }
+  .inv-table td { padding:8px 4px; border-bottom:1px solid #edf0f4; }
+  .totals { margin-left:auto; width:55%; margin-top:20px; font-size:11px; }
+  .totals div { display:flex; justify-content:space-between; padding:5px 0; }
+  .totals .grand { border-top:2px solid #303949; margin-top:5px; padding-top:9px; font-weight:800; font-size:13px; }
+  .table-wrap { padding:0 14px 14px; }
+  table.data { width:100%; border-collapse:collapse; font-size:12px; }
+  .data th { background:#fafbfc; color:#727d8e; text-align:left; font-size:11px; padding:10px 8px; border-bottom:1px solid #e8ebf0; }
+  .data td { padding:9px 8px; border-bottom:1px solid #eef1f5; vertical-align:middle; }
+  .data tr.selected { background:#f4f8ff; }
+  .data input, .data select { width:100%; padding:7px 8px; border:1px solid #d7dde6; border-radius:6px; background:#fff; color:#283346; font-size:12px; }
+  .confidence { font-weight:800; font-size:11px; }
+  .high { color:#08754f; }
+  .med { color:#ad6a00; }
+  .low { color:#b42318; }
+  .summary { margin:0 14px 14px; padding:13px; background:#f8fbff; border:1px solid #dce9ff; border-radius:8px; font-size:12px; color:#31415c; }
+  .summary strong { display:block; margin-bottom:4px; }
+  .totals-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px; }
+  .metric { padding:12px; background:#fafbfd; border:1px solid #e7ebf0; border-radius:8px; }
+  .metric span { display:block; color:#7c8695; font-size:11px; margin-bottom:5px; }
+  .metric strong { font-size:15px; }
+  .match { color:#08754f; font-size:11px; font-weight:800; float:right; }
+  .details { padding:14px; }
+  .detail-title { font-size:11px; color:#7a8391; margin-top:13px; margin-bottom:6px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .field { border:1px solid #e1e5eb; border-radius:7px; padding:9px; background:#fbfcfe; font-size:12px; }
+  .pill { display:inline-block; padding:5px 8px; background:#eaf8f3; color:#08754f; border-radius:5px; font-size:11px; font-weight:800; }
+  .footer-actions { display:flex; justify-content:flex-end; gap:8px; padding-top:16px; }
+  .toast { position:fixed; right:22px; bottom:22px; background:#172033; color:#fff; padding:12px 16px; border-radius:9px; font-size:13px; display:none; box-shadow:0 10px 25px rgba(0,0,0,.18); z-index:50; }
+
+  /* --- module overlay (Sales / Bank / Dashboard / Suppliers / COA / VAT / Reports / Settings) --- */
+  .module-overlay { position:fixed; inset:0; background:rgba(15,23,42,.42); display:none; align-items:flex-start; justify-content:center; padding:40px 24px; z-index:40; overflow:auto; }
+  .module-overlay.open { display:flex; }
+  .module-panel { background:#f5f7fb; border-radius:14px; width:min(1040px,100%); box-shadow:0 20px 60px rgba(10,15,30,.25); overflow:hidden; }
+  .module-head { display:flex; justify-content:space-between; align-items:flex-start; padding:20px 24px; background:#fff; border-bottom:1px solid #e6e9ef; }
+  .module-grid { display:grid; grid-template-columns: 300px 1fr; gap:14px; padding:18px; }
+  .dropzone { border:1.5px dashed #c7d0de; border-radius:10px; padding:26px 14px; text-align:center; cursor:pointer; background:#fafbfd; }
+  .dropzone:hover { background:#f1f5ff; border-color:#8fb4f2; }
+  .drop-icon { width:34px; height:34px; border-radius:50%; background:#eaf2ff; margin:0 auto 10px; }
+  .status-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+
+  .toast { }
+  @media (max-width: 1100px) {
+    .review-grid { grid-template-columns: 1fr 1.3fr; }
+    .detail-card { display:none; }
+    .module-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .sidebar { width:68px; padding:14px 8px; }
+    .brand span, .nav button span:last-child { display:none; }
+    .nav button { text-align:center; }
+    .content { padding:14px; }
+    .workflow { padding-left:14px; overflow:auto; }
+    .review-grid { grid-template-columns:1fr; }
+    .invoice-paper { min-height:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">◆</div>
+      <span>InvParse</span>
+    </div>
+    <nav class="nav">
+      <button onclick="showModule('dashboard')"><span>🏠</span><span>&nbsp;Dashboard</span></button>
+      <button class="active"><span>📥</span><span>&nbsp;Purchases</span></button>
+      <button onclick="showModule('sales')"><span>💳</span><span>&nbsp;Sales</span></button>
+      <button onclick="showModule('bank')"><span>🏦</span><span>&nbsp;Bank</span></button>
+      <button onclick="showModule('suppliers')"><span>🧾</span><span>&nbsp;Suppliers</span></button>
+      <button onclick="showModule('coa')"><span>📚</span><span>&nbsp;Chart of Accounts</span></button>
+      <button onclick="showModule('vat')"><span>％</span><span>&nbsp;VAT Rates</span></button>
+      <button onclick="showModule('reports')"><span>📊</span><span>&nbsp;Reports</span></button>
+      <button onclick="showModule('settings')"><span>⚙️</span><span>&nbsp;Settings</span></button>
+    </nav>
+  </aside>
+
+  <!-- ==================== MODULE OVERLAY ==================== -->
+  <section id="moduleOverlay" class="module-overlay">
+    <div class="module-panel">
+      <div class="module-head">
+        <div>
+          <h2 id="moduleTitle" style="margin:0 0 4px;font-size:19px;">Sales</h2>
+          <div class="subtitle" id="moduleSubtitle">Parse sales invoices, credit notes and VAT with the same review engine.</div>
+        </div>
+        <button class="btn" onclick="closeModule()">Close</button>
+      </div>
+
+      <!-- SALES -->
+      <div id="salesModule">
+        <div class="module-grid">
+          <div class="card">
+            <div class="card-head"><strong>Sales import</strong><span class="badge">AI ready</span></div>
+            <div class="card-body">
+              <div class="dropzone" onclick="toast('Upload simulated')">
+                <div class="drop-icon"></div>
+                <strong>Drop sales invoices here</strong>
+                <div class="small">PDF, image, CSV or XML batch upload supported</div>
+                <button class="btn primary" style="margin-top:10px">Choose files</button>
+              </div>
+              <div class="status-cards">
+                <div class="metric"><span>Ready to post</span><strong>18</strong></div>
+                <div class="metric"><span>VAT exceptions</span><strong>2</strong></div>
+                <div class="metric"><span>Needs review</span><strong>4</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><strong>Sales coding preview</strong><span class="small">This month</span></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Customer</th><th>Net</th><th>VAT</th><th>VAT Rate</th><th>Revenue GL</th><th>Confidence</th></tr></thead>
+                <tbody>
+                  <tr><td>Acme Retail Ltd</td><td>€4,200.00</td><td>€966.00</td><td>23%</td><td>4000 · Sales</td><td class="confidence high">98%</td></tr>
+                  <tr><td>Greenline Services</td><td>€1,850.00</td><td>€0.00</td><td>0%</td><td>4020 · Services</td><td class="confidence med">Review VAT</td></tr>
+                  <tr><td>Northstar Foods</td><td>€3,100.00</td><td>€418.50</td><td>13.5%</td><td>4010 · Reduced Rate Sales</td><td class="confidence high">96%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="summary"><strong>Sales intelligence</strong>Customer history, item descriptions and previous VAT treatment drive revenue GL and VAT suggestions.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANK -->
+      <div id="bankModule" style="display:none">
+        <div class="module-grid">
+          <div class="card">
+            <div class="card-head"><strong>Bank statement import</strong><span class="badge">Auto-reconcile</span></div>
+            <div class="card-body">
+              <div class="dropzone" onclick="toast('Bank statement upload simulated')">
+                <div class="drop-icon"></div>
+                <strong>Drop a bank statement here</strong>
+                <div class="small">CSV, PDF, OFX, QIF — extract transactions and match them automatically</div>
+                <button class="btn primary" style="margin-top:10px">Upload statement</button>
+              </div>
+              <div class="status-cards">
+                <div class="metric"><span>Transactions</span><strong>246</strong></div>
+                <div class="metric"><span>Auto-matched</span><strong>221</strong></div>
+                <div class="metric"><span>Exceptions</span><strong>25</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><strong>Bank reconciliation</strong><span class="small">Current account</span></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Date</th><th>Description</th><th>Money out</th><th>Match GL</th><th>Confidence</th></tr></thead>
+                <tbody>
+                  <tr><td>04 Sept</td><td>Microsoft 365</td><td>€146.40</td><td>6200 · Software</td><td class="confidence high">98%</td></tr>
+                  <tr><td>04 Sept</td><td>Stripe payout</td><td>—</td><td>4000 · Sales receipts</td><td class="confidence high">99%</td></tr>
+                  <tr><td>03 Sept</td><td>Electric Ireland</td><td>€284.17</td><td>6300 · Utilities</td><td class="confidence med">81%</td></tr>
+                  <tr><td>03 Sept</td><td>PAYMENT 87421</td><td>€1,250.00</td><td>
+                    <select><option>Supplier payment</option><option>Uncategorised</option></select>
+                  </td><td class="confidence low">62%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="summary"><strong>Reconciliation intelligence</strong>Transactions can be matched to supplier invoices, sales receipts, recurring payments and prior coding patterns.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="dashboardModule" style="display:none">
+        <div class="module-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="metric"><span>Invoices this month</span><strong>142</strong></div>
+          <div class="metric"><span>Avg. extraction confidence</span><strong>96.4%</strong></div>
+          <div class="metric"><span>Pending review</span><strong>9</strong></div>
+          <div class="metric"><span>VAT exceptions</span><strong>3</strong></div>
+        </div>
+        <div class="module-grid">
+          <div class="card">
+            <div class="card-head"><strong>Recent activity</strong></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Invoice</th><th>Supplier</th><th>Status</th><th>Confidence</th></tr></thead>
+                <tbody>
+                  <tr><td>INV-2024-0456</td><td>Acme Supplies Ltd.</td><td>In review</td><td class="confidence high">94%</td></tr>
+                  <tr><td>INV-2024-0455</td><td>Greenline Services</td><td>Approved</td><td class="confidence high">97%</td></tr>
+                  <tr><td>INV-2024-0454</td><td>Northstar Foods</td><td>Posted</td><td class="confidence med">88%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><strong>Extraction pipeline health</strong></div>
+            <div class="card-body">
+              <div class="details" style="padding:0">
+                <div class="detail-title">Strategy</div>
+                <div class="field">llm_primary (Gemini) · DocTR fallback armed</div>
+                <div class="detail-title">Queue depth</div>
+                <div class="field">Celery: 2 pending · 0 failed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUPPLIERS -->
+      <div id="suppliersModule" style="display:none">
+        <div class="module-grid" style="grid-template-columns:1fr">
+          <div class="card">
+            <div class="card-head"><strong>Suppliers</strong><span class="badge">RAG-matched</span></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Supplier</th><th>VAT number</th><th>Default GL</th><th>Invoices</th><th>Match confidence</th></tr></thead>
+                <tbody>
+                  <tr><td>Acme Supplies Ltd.</td><td>IE1234567H</td><td>6100 · Office Furniture</td><td>27</td><td class="confidence high">96%</td></tr>
+                  <tr><td>Greenline Services</td><td>IE9876543K</td><td>4020 · Services</td><td>14</td><td class="confidence high">95%</td></tr>
+                  <tr><td>Electric Ireland</td><td>IE5551234B</td><td>6300 · Utilities</td><td>9</td><td class="confidence med">84%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="summary"><strong>Supplier learning</strong>Corrections made during review are captured as artifacts and improve future GL / VAT suggestions for this supplier.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART OF ACCOUNTS -->
+      <div id="coaModule" style="display:none">
+        <div class="module-grid" style="grid-template-columns:1fr">
+          <div class="card">
+            <div class="card-head"><strong>Chart of accounts</strong><span class="small">42 GL codes</span></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Default VAT rate</th></tr></thead>
+                <tbody>
+                  <tr><td>6100</td><td>Office Furniture</td><td>Expense</td><td>23%</td></tr>
+                  <tr><td>6200</td><td>Office Supplies</td><td>Expense</td><td>23%</td></tr>
+                  <tr><td>6300</td><td>IT Equipment</td><td>Expense</td><td>23%</td></tr>
+                  <tr><td>4000</td><td>Sales</td><td>Revenue</td><td>23%</td></tr>
+                  <tr><td>4010</td><td>Reduced Rate Sales</td><td>Revenue</td><td>13.5%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VAT RATES -->
+      <div id="vatModule" style="display:none">
+        <div class="module-grid" style="grid-template-columns:1fr">
+          <div class="card">
+            <div class="card-head"><strong>VAT rates (Ireland)</strong></div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th>Rate</th><th>Label</th><th>Used on</th></tr></thead>
+                <tbody>
+                  <tr><td>23%</td><td>Standard Rate</td><td>Goods &amp; most services</td></tr>
+                  <tr><td>13.5%</td><td>Reduced Rate</td><td>Fuel, building services</td></tr>
+                  <tr><td>9%</td><td>Second Reduced Rate</td><td>Hospitality, print</td></tr>
+                  <tr><td>0%</td><td>Zero Rate</td><td>Exports, certain food</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="reportsModule" style="display:none">
+        <div class="module-grid" style="grid-template-columns:1fr">
+          <div class="card">
+            <div class="card-head"><strong>Reports</strong></div>
+            <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn" onclick="toast('VAT return exported (simulated)')">VAT Return (VAT3)</button>
+              <button class="btn" onclick="toast('P&amp;L exported (simulated)')">Profit &amp; Loss</button>
+              <button class="btn" onclick="toast('Balance sheet exported (simulated)')">Balance Sheet</button>
+              <button class="btn" onclick="toast('Aged creditors exported (simulated)')">Aged Creditors</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="settingsModule" style="display:none">
+        <div class="module-grid" style="grid-template-columns:1fr">
+          <div class="card">
+            <div class="card-head"><strong>Settings</strong></div>
+            <div class="details" style="padding:14px">
+              <div class="detail-title">Organization</div>
+              <div class="field">InvParse Demo Ltd. · Dublin 2, Ireland</div>
+              <div class="detail-title">Extraction strategy</div>
+              <div class="field">llm_primary (default) — DocTR fallback enabled until benchmark gate passes</div>
+              <div class="detail-title">Webhook endpoint</div>
+              <div class="field">https://demo.invparse.ie/webhooks/invoices (signed)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== MAIN: PURCHASE REVIEW ==================== -->
+  <main class="main">
+    <header class="topbar">
+      <div class="crumb">Invoices &nbsp;&gt;&nbsp; <strong>INV-2024-0456</strong></div>
+      <div class="actions">
+        <button class="btn" onclick="toast('Invoice download simulated')">Download</button>
+        <button class="btn" onclick="toast('More actions simulated')">More</button>
+        <button class="btn primary" onclick="approveInvoice()">Approve Invoice</button>
+      </div>
+    </header>
+
+    <div class="workflow">
+      <div class="step done"><span class="circle">✓</span> Upload</div>
+      <div class="line"></div>
+      <div class="step current"><span class="circle">2</span> Review &amp; Map</div>
+      <div class="line"></div>
+      <div class="step"><span class="circle">3</span> Approved</div>
+    </div>
+
+    <section class="content">
+      <div class="header-row">
+        <div>
+          <h1>Review invoice</h1>
+          <div class="subtitle">AI extracted and coded 3 line items from the uploaded invoice.</div>
+        </div>
+        <div class="badge">● 94% overall confidence</div>
+      </div>
+
+      <div class="review-grid">
+
+        <!-- Invoice Preview -->
+        <section class="card">
+          <div class="card-head"><strong>Invoice Preview</strong><span class="small">100%</span></div>
+          <div class="card-body">
+            <div class="invoice-paper">
+              <div class="inv-top">
+                <div>
+                  <div class="vendor">ACME SUPPLIES LTD.</div>
+                  <div class="small">145 Business Park<br>Dublin 24, Ireland<br>VAT IE1234567H</div>
+                </div>
+                <div class="inv-no">
+                  <strong>INVOICE</strong><br>
+                  <span class="small">INV-2024-0456<br>24/06/2024<br>Due 24/07/2024</span>
+                </div>
+              </div>
+              <div class="small" style="margin-top:16px"><strong>BILL TO:</strong><br>InvParse Demo Ltd.<br>12 Main Street<br>Dublin 2, Ireland</div>
+              <table class="inv-table">
+                <thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>VAT</th><th>Amount</th></tr></thead>
+                <tbody>
+                  <tr><td>Office Chair</td><td>2</td><td>€120.00</td><td>23%</td><td>€240.00</td></tr>
+                  <tr><td>Laptop Stand</td><td>1</td><td>€45.00</td><td>23%</td><td>€45.00</td></tr>
+                  <tr><td>Monitor 27"</td><td>2</td><td>€210.00</td><td>23%</td><td>€420.00</td></tr>
+                </tbody>
+              </table>
+              <div class="totals">
+                <div><span>Subtotal</span><strong>€705.00</strong></div>
+                <div><span>VAT (23%)</span><strong>€162.15</strong></div>
+                <div class="grand"><span>Total</span><strong>€867.15</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Parsed Line Items -->
+        <section class="card">
+          <div class="card-head"><strong>Parsed Line Items</strong><span class="badge">Auto-mapped</span></div>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Description</th><th>Qty</th><th>Net</th><th>VAT Rate</th><th>VAT</th><th>GL Code</th><th>Confidence</th></tr></thead>
+              <tbody>
+                <tr class="selected" onclick="selectRow(0)">
+                  <td><input value="Office Chair" onclick="event.stopPropagation()"></td>
+                  <td><input value="2" onclick="event.stopPropagation()"></td>
+                  <td><input value="240.00" onclick="event.stopPropagation()"></td>
+                  <td><select onclick="event.stopPropagation()"><option>23%</option><option>13.5%</option><option>0%</option></select></td>
+                  <td>€55.20</td>
+                  <td><select onclick="event.stopPropagation()"><option>6100 - Office Furniture</option><option>6200 - Office Supplies</option><option>6300 - IT Equipment</option></select></td>
+                  <td class="confidence high">95%</td>
+                </tr>
+                <tr onclick="selectRow(1)">
+                  <td><input value="Laptop Stand" onclick="event.stopPropagation()"></td>
+                  <td><input value="1" onclick="event.stopPropagation()"></td>
+                  <td><input value="45.00" onclick="event.stopPropagation()"></td>
+                  <td><select onclick="event.stopPropagation()"><option>23%</option><option>13.5%</option><option>0%</option></select></td>
+                  <td>€10.35</td>
+                  <td><select onclick="event.stopPropagation()"><option>6200 - Office Supplies</option><option>6100 - Office Furniture</option><option>6300 - IT Equipment</option></select></td>
+                  <td class="confidence high">93%</td>
+                </tr>
+                <tr onclick="selectRow(2)">
+                  <td><input value="Monitor 27&quot;" onclick="event.stopPropagation()"></td>
+                  <td><input value="2" onclick="event.stopPropagation()"></td>
+                  <td><input value="420.00" onclick="event.stopPropagation()"></td>
+                  <td><select onclick="event.stopPropagation()"><option>23%</option><option>13.5%</option><option>0%</option></select></td>
+                  <td>€96.60</td>
+                  <td><select onclick="event.stopPropagation()"><option>6100 - Office Equipment</option><option>6300 - IT Equipment</option><option>6200 - Office Supplies</option></select></td>
+                  <td class="confidence high">94%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="totals-strip">
+            <div class="metric"><span>Net total</span><strong>€705.00</strong></div>
+            <div class="metric"><span>Total VAT</span><strong>€162.15</strong></div>
+            <div class="metric"><span>Invoice total</span><strong>€867.15</strong><span class="match">✓ MATCH</span></div>
+          </div>
+          <div class="summary"><strong>✦ AI validation</strong>All line items are mapped with high confidence. VAT calculations reconcile with the invoice total.</div>
+          <div class="footer-actions" style="padding:0 14px 14px">
+            <button class="btn" onclick="toast('Draft saved')">Save Draft</button>
+            <button class="btn success" onclick="approveInvoice()">Approve Invoice</button>
+          </div>
+        </section>
+
+        <!-- Line Item Details -->
+        <aside class="card detail-card">
+          <div class="card-head"><strong>Line Item Details</strong></div>
+          <div class="details">
+            <div class="detail-title">Description</div>
+            <div class="field" id="detailDescription">Office Chair</div>
+            <div class="detail-title">GL Code</div>
+            <div class="field" id="detailGL">6100 · Office Furniture</div>
+            <div class="detail-title">VAT Rate</div>
+            <div class="field" id="detailVat">23% · Standard Rate</div>
+            <div class="detail-title">Net Amount</div>
+            <div class="field" id="detailNet">€240.00</div>
+            <div class="detail-title">VAT Amount</div>
+            <div class="field" id="detailVatAmount">€55.20</div>
+            <div class="detail-title">AI Confidence</div>
+            <div class="field"><span class="pill" id="detailConfidence">95% · Auto-mapped</span></div>
+            <div class="detail-title">Reasoning</div>
+            <div class="small" id="detailReason">Matches previous Office Furniture purchases from this supplier.</div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const rows = [
+    { d:'Office Chair', gl:'6100 · Office Furniture', vat:'23% · Standard Rate', net:'€240.00', va:'€55.20', c:'95', r:'Matches previous Office Furniture purchases from this supplier.' },
+    { d:'Laptop Stand', gl:'6200 · Office Supplies', vat:'23% · Standard Rate', net:'€45.00', va:'€10.35', c:'93', r:'Supplier history and item description strongly match Office Supplies.' },
+    { d:'Monitor 27"', gl:'6100 · Office Equipment', vat:'23% · Standard Rate', net:'€420.00', va:'€96.60', c:'94', r:'Recognised as business equipment consistent with invoice VAT rate.' }
+  ];
+
+  function selectRow(i) {
+    document.querySelectorAll('.data tbody tr').forEach((r,n) => r.classList.toggle('selected', n===i));
+    const x = rows[i];
+    detailDescription.textContent = x.d;
+    detailGL.textContent = x.gl;
+    detailVat.textContent = x.vat;
+    detailNet.textContent = x.net;
+    detailVatAmount.textContent = x.va;
+    detailConfidence.textContent = x.c + '% · Auto-mapped';
+    detailReason.textContent = x.r;
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2200);
+  }
+
+  function approveInvoice() {
+    toast('Invoice approved — ready to post to accounting');
+    document.querySelector('.step.current').classList.remove('current');
+    document.querySelectorAll('.step')[2].classList.add('current');
+  }
+
+  function showModule(module) {
+    const overlay = document.getElementById('moduleOverlay');
+    overlay.classList.add('open');
+    ['sales','bank','dashboard','suppliers','coa','vat','reports','settings'].forEach(m => {
+      document.getElementById(m + 'Module').style.display = (m === module) ? 'block' : 'none';
+    });
+    const titles = { sales:'Sales', bank:'Bank', dashboard:'Dashboard', suppliers:'Suppliers', coa:'Chart of Accounts', vat:'VAT Rates', reports:'Reports', settings:'Settings' };
+    const subtitles = {
+      sales:'Parse sales invoices, credit notes and VAT with the same review engine.',
+      bank:'Import bank statements, classify transactions and reconcile them against the ledger.',
+      dashboard:'Live overview of extraction throughput, confidence and pending review work.',
+      suppliers:'Supplier-level GL/VAT defaults learned from prior review corrections.',
+      coa:'Manage the general ledger codes used by extraction and coding suggestions.',
+      vat:'Ireland VAT rate reference used for validation and reconciliation.',
+      reports:'Generate accounting and VAT reports from posted invoices.',
+      settings:'Organization, extraction strategy and webhook configuration.'
+    };
+    document.getElementById('moduleTitle').textContent = titles[module];
+    document.getElementById('moduleSubtitle').textContent = subtitles[module];
+  }
+
+  function closeModule() {
+    document.getElementById('moduleOverlay').classList.remove('open');
+  }
+
+  document.getElementById('moduleOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'moduleOverlay') closeModule();
+  });
+</script>
+</body>
+</html>
