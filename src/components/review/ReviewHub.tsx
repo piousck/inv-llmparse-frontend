@@ -30,7 +30,7 @@ import { LineItemsTable } from './LineItemsTable';
 import { Section60Banner } from './Section60Banner';
 import { LineItemInspector } from './LineItemInspector';
 import { NonIrishPurchaseBanner } from './NonIrishPurchaseBanner';
-import { isNonIrishPurchase, cn } from '../../lib/utils';
+import { isNonIrishPurchase, formatCurrency, formatSupplierName, cn } from '../../lib/utils';
 import { formatAppDate } from '../../lib/dateUtils';
 
 interface ReviewHubProps {
@@ -343,6 +343,11 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
 
   // Non-Irish purchase detection & Claimed VAT
   const isForeignPurchase = isNonIrishPurchase(invoice);
+  const isCreditNote = Boolean(
+    (invoice?.total_gross !== undefined && invoice.total_gross < 0) ||
+    (invoice?.invoice_number && invoice.invoice_number.toLowerCase().includes('cn')) ||
+    (invoice as any)?.is_credit_note
+  );
   const claimableVat = isForeignPurchase
     ? 0
     : invoice.line_items
@@ -765,6 +770,12 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
     }
   };
 
+  // Update invoice header details
+  const handleUpdateInvoiceField = (field: keyof InvoiceDetail, value: any) => {
+    if (isLocked) return;
+    setInvoice((prev) => (prev ? { ...prev, [field]: value } : null));
+  };
+
   // Save Review Draft (PATCH)
   const handleSaveCorrections = async () => {
     setIsSaving(true);
@@ -935,49 +946,15 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
 
           <div className="h-4 w-px bg-border shrink-0" />
 
-          {/* Invoice # & Seller */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h1 className="text-sm sm:text-base font-extrabold text-foreground font-mono truncate">
+          {/* Invoice # Title */}
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-xs sm:text-sm font-extrabold text-foreground font-mono truncate">
               {invoice.invoice_number || 'INV-DRAFT'}
             </h1>
-            <span className="text-xs text-muted-foreground truncate hidden md:inline">
-              ({invoice.seller_name})
-            </span>
-            {invoice.invoice_date && (
-              <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">
-                • {formatAppDate(invoice.invoice_date)}
-              </span>
-            )}
-          </div>
-
-          {/* Status & Merged Page Pills */}
-          <div className="flex items-center gap-1 shrink-0">
-            {((invoice.pages && invoice.pages.length > 1) || (invoice.extracted_data?.page_numbers?.length || 0) > 1) && (
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-mono font-bold py-0.5 px-1.5 flex items-center gap-1">
-                <Layers className="w-2.5 h-2.5" />
-                {invoice.pages?.length || invoice.extracted_data?.page_numbers?.length || 2}p
+            {isCreditNote && (
+              <Badge variant="outline" className="text-[10px] bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 font-bold uppercase tracking-wider py-0 px-1.5 shrink-0">
+                Credit Note
               </Badge>
-            )}
-
-            {invoice.is_cash_paid && (
-              <Badge variant="outline" className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] font-bold py-0.5 px-1.5 hidden lg:flex items-center gap-1" title={invoice.payment_details || 'Paid in Cash'}>
-                <Banknote className="w-2.5 h-2.5 text-amber-600" />
-                Cash
-              </Badge>
-            )}
-
-            {workflowStep === 3 ? (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
-                <Check className="w-3 h-3 text-emerald-600" /> Approved
-              </span>
-            ) : invoice.requires_human_review ? (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 text-amber-600" /> Needs Review
-              </span>
-            ) : (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold">
-                Verified
-              </span>
             )}
           </div>
         </div>
@@ -1274,6 +1251,229 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                 )}
               </div>
             )}
+
+            {/* Invoice Header Details Box - Just Above Extracted Line Items */}
+            <div className="shrink-0 rounded-xl border border-border bg-card shadow-2xs p-2.5 sm:p-3 space-y-2 select-none">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                  <div className="flex items-center gap-1 text-xs font-bold text-foreground">
+                    <FileText className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span>Invoice Details</span>
+                  </div>
+                  {isCreditNote && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-bold uppercase tracking-wider">
+                      Credit Note
+                    </span>
+                  )}
+                  {invoice.is_cash_paid && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-semibold inline-flex items-center gap-1">
+                      <Banknote className="w-3 h-3 text-amber-600" /> Cash Settled
+                    </span>
+                  )}
+                  {workflowStep === 3 ? (
+                    <span className="text-[10px] px-2 py-0.2 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold inline-flex items-center gap-1">
+                      <Check className="w-3 h-3 text-emerald-600" /> Approved
+                    </span>
+                  ) : invoice.requires_human_review ? (
+                    <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold inline-flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 text-amber-600" /> Needs Review
+                    </span>
+                  ) : (
+                    <span className="text-[10px] px-2 py-0.2 rounded-full bg-muted text-muted-foreground font-semibold">
+                      Verified
+                    </span>
+                  )}
+                  {((invoice.pages && invoice.pages.length > 1) || (invoice.extracted_data?.page_numbers?.length || 0) > 1) && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 font-bold font-mono inline-flex items-center gap-1">
+                      <Layers className="w-2.5 h-2.5" />
+                      {invoice.pages?.length || invoice.extracted_data?.page_numbers?.length || 2}p
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {invoice.ocr_confidence && (
+                    <span className="text-[10px] font-mono text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded border border-border">
+                      {Math.round(invoice.ocr_confidence * 100)}% Confidence
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Metadata Fields Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-2 text-[11px]">
+                {/* 1. Supplier / Vendor */}
+                <div className="p-2 rounded-lg bg-muted/20 border border-border/60 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider truncate">
+                    Supplier / Vendor
+                  </span>
+                  {!isLocked ? (
+                    <input
+                      type="text"
+                      value={invoice.seller_name || ''}
+                      onChange={(e) => handleUpdateInvoiceField('seller_name', e.target.value)}
+                      placeholder="Supplier Name"
+                      className="w-full font-bold text-foreground text-[11px] bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 -mx-1 outline-none truncate mt-0.5"
+                    />
+                  ) : (
+                    <div className="font-bold text-foreground truncate mt-0.5" title={invoice.seller_name}>
+                      {formatSupplierName(invoice.seller_name) || '—'}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">
+                    {invoice.seller_vat ? `VAT: ${invoice.seller_vat}` : 'No VAT registered'}
+                  </div>
+                </div>
+
+                {/* 2. Invoice / Ref Number */}
+                <div className="p-2 rounded-lg bg-muted/20 border border-border/60 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider truncate">
+                    Invoice #
+                  </span>
+                  {!isLocked ? (
+                    <input
+                      type="text"
+                      value={invoice.invoice_number || ''}
+                      onChange={(e) => handleUpdateInvoiceField('invoice_number', e.target.value)}
+                      placeholder="Invoice Number"
+                      className="w-full font-mono font-bold text-foreground text-[11px] bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 -mx-1 outline-none truncate mt-0.5"
+                    />
+                  ) : (
+                    <div className="font-mono font-bold text-foreground truncate mt-0.5">
+                      {invoice.invoice_number || '—'}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">
+                    Currency: {invoice.currency || 'EUR'}
+                  </div>
+                </div>
+
+                {/* 3. Invoice Date */}
+                <div className="p-2 rounded-lg bg-muted/20 border border-border/60 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider truncate">
+                    Invoice Date
+                  </span>
+                  {!isLocked ? (
+                    <input
+                      type="date"
+                      value={invoice.invoice_date ? invoice.invoice_date.slice(0, 10) : ''}
+                      onChange={(e) => handleUpdateInvoiceField('invoice_date', e.target.value)}
+                      className="w-full font-mono font-semibold text-foreground text-[11px] bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 -mx-1 outline-none mt-0.5"
+                    />
+                  ) : (
+                    <div className="font-mono font-semibold text-foreground truncate mt-0.5">
+                      {invoice.invoice_date ? formatAppDate(invoice.invoice_date) : '—'}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">
+                    {invoice.due_date ? `Due: ${formatAppDate(invoice.due_date)}` : 'Due: On Receipt'}
+                  </div>
+                </div>
+
+                {/* 4. Payment Terms & Method */}
+                <div className="p-2 rounded-lg bg-muted/20 border border-border/60 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider truncate">
+                    Payment Terms
+                  </span>
+                  {!isLocked ? (
+                    <input
+                      type="date"
+                      value={invoice.due_date ? invoice.due_date.slice(0, 10) : ''}
+                      onChange={(e) => handleUpdateInvoiceField('due_date', e.target.value)}
+                      className="w-full font-mono text-foreground text-[11px] bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 -mx-1 outline-none mt-0.5"
+                    />
+                  ) : (
+                    <div className="font-mono text-foreground truncate mt-0.5">
+                      {invoice.due_date ? formatAppDate(invoice.due_date) : 'On Receipt'}
+                    </div>
+                  )}
+                  <div className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">
+                    {invoice.is_cash_paid ? 'Paid in Cash' : invoice.payment_method || 'Open Balance'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Totals Row */}
+              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/50">
+                <div className="px-2.5 py-1.5 rounded-md bg-muted/30 border border-border/50 flex items-center justify-between min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider truncate mr-1">
+                    Net
+                  </span>
+                  {!isLocked ? (
+                    <div className="flex items-center gap-0.5 font-mono font-semibold text-[11px] text-foreground shrink-0">
+                      <span>{invoice.currency || '€'}</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={invoice.total_net ?? ''}
+                        onChange={(e) => handleUpdateInvoiceField('total_net', parseFloat(e.target.value) || 0)}
+                        className="w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]"
+                      />
+                    </div>
+                  ) : (
+                    <span className="font-mono font-semibold text-[11px] text-foreground shrink-0">
+                      {formatCurrency(invoice.total_net, invoice.currency)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="px-2.5 py-1.5 rounded-md bg-muted/30 border border-border/50 flex items-center justify-between min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider truncate mr-1">
+                    VAT
+                  </span>
+                  {!isLocked ? (
+                    <div className="flex items-center gap-0.5 font-mono font-semibold text-[11px] text-foreground shrink-0">
+                      <span>{invoice.currency || '€'}</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={invoice.total_vat ?? ''}
+                        onChange={(e) => handleUpdateInvoiceField('total_vat', parseFloat(e.target.value) || 0)}
+                        className="w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]"
+                      />
+                    </div>
+                  ) : (
+                    <span className="font-mono font-semibold text-[11px] text-foreground shrink-0">
+                      {formatCurrency(invoice.total_vat, invoice.currency)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="px-2.5 py-1.5 rounded-md bg-muted/30 border border-border/50 flex items-center justify-between min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider truncate mr-1">
+                    Total Gross
+                  </span>
+                  {!isLocked ? (
+                    <div className="flex items-center gap-0.5 font-mono font-bold text-[11px] shrink-0">
+                      <span className={isCreditNote ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}>
+                        {isCreditNote ? '-' : ''}{invoice.currency || '€'}
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={invoice.total_gross ?? ''}
+                        onChange={(e) => handleUpdateInvoiceField('total_gross', parseFloat(e.target.value) || 0)}
+                        className={cn(
+                          "w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px] font-bold",
+                          isCreditNote ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <span
+                      className={cn(
+                        "font-mono font-bold text-[11px] shrink-0",
+                        isCreditNote ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"
+                      )}
+                    >
+                      {isCreditNote
+                        ? `-${formatCurrency(Math.abs(Number(invoice.total_gross) || 0), invoice.currency)}`
+                        : formatCurrency(invoice.total_gross, invoice.currency)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Line Items Table with Built-In Sticky Reconciliation Footer */}
             <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
