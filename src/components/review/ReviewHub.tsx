@@ -31,6 +31,7 @@ import { Section60Banner } from './Section60Banner';
 import { LineItemInspector } from './LineItemInspector';
 import { NonIrishPurchaseBanner } from './NonIrishPurchaseBanner';
 import { isNonIrishPurchase, cn } from '../../lib/utils';
+import { formatAppDate } from '../../lib/dateUtils';
 
 interface ReviewHubProps {
   invoiceId: string;
@@ -942,6 +943,11 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
             <span className="text-xs text-muted-foreground truncate hidden md:inline">
               ({invoice.seller_name})
             </span>
+            {invoice.invoice_date && (
+              <span className="text-xs font-mono text-muted-foreground ml-1 hidden sm:inline">
+                • {formatAppDate(invoice.invoice_date)}
+              </span>
+            )}
           </div>
 
           {/* Status & Merged Page Pills */}

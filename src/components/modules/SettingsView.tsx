@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Globe, Database, Building, Cpu, CheckCircle2, ShieldCheck, Sparkles, Scale, Sliders } from 'lucide-react';
+import { Save, Globe, Database, Building, Cpu, CheckCircle2, ShieldCheck, Sparkles, Scale, Sliders, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Organization, IndustryCode, IndustryPreset, INDUSTRY_PRESETS } from '../../types/api';
 import { apiService } from '../../services/api';
 import { CoaView } from './CoaView';
 import { AccountingYearsView } from './AccountingYearsView';
+import { useDateFormat, DATE_FORMAT_OPTIONS, DateFormatOption } from '../../lib/dateUtils';
 
 
 interface SettingsViewProps {
@@ -23,6 +24,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onToggleMode,
   onShowToast,
 }) => {
+  const { dateFormat, setDateFormat, formatDate } = useDateFormat();
   const [orgName, setOrgName] = useState<string>(activeOrg.name);
   const [industry, setIndustry] = useState<IndustryCode>(activeOrg.industry || 'general');
   const [customNotes, setCustomNotes] = useState<string>(activeOrg.custom_accounting_notes || '');
@@ -212,6 +214,53 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <p className="text-[11px] text-muted-foreground mt-1">
               Tip: Leave empty for local development to route via Vite proxy and avoid browser CORS restrictions.
             </p>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Date & Regional Display Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary" /> Regional &amp; Date Display Preferences
+          </CardTitle>
+          <span className="text-xs font-mono font-bold text-primary px-2 py-0.5 rounded bg-primary/10 border border-primary/20">
+            {dateFormat}
+          </span>
+        </CardHeader>
+        <CardBody className="space-y-4 text-xs">
+          <div>
+            <label htmlFor="settings-date-format-select" className="font-bold text-foreground block mb-1">
+              Date Display Format
+            </label>
+            <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              Choose how dates are formatted throughout invoices, supplier activity statements, bank reconciliations, and accounting periods across the application.
+            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <select
+                id="settings-date-format-select"
+                value={dateFormat}
+                onChange={(e) => {
+                  const newFmt = e.target.value as DateFormatOption;
+                  setDateFormat(newFmt);
+                  onShowToast(`Date display format updated to ${newFmt}`);
+                }}
+                className="w-full sm:w-80 p-2.5 bg-background border border-border rounded-lg text-xs font-semibold text-foreground focus:outline-none focus:border-primary cursor-pointer"
+              >
+                {DATE_FORMAT_OPTIONS.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label} — e.g. {opt.example}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/60 border border-border">
+                <span className="text-muted-foreground text-[11px]">Today preview:</span>
+                <span className="font-mono font-bold text-foreground text-xs">
+                  {formatDate(new Date())}
+                </span>
+              </div>
+            </div>
           </div>
         </CardBody>
       </Card>

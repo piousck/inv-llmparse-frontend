@@ -15,22 +15,9 @@ import { formatCurrency } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { InvoiceCanvas } from '../review/InvoiceCanvas';
+import { formatAppDate } from '../../lib/dateUtils';
 
-const formatDate = (dateStr: string | null | undefined): string => {
-  if (!dateStr) return '—';
-  try {
-    const d = new Date(dateStr);
-    return isNaN(d.getTime())
-      ? dateStr
-      : d.toLocaleDateString('en-IE', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        });
-  } catch {
-    return dateStr;
-  }
-};
+const formatDate = (dateStr: string | null | undefined): string => formatAppDate(dateStr);
 
 interface SupplierInvoiceSidePanelProps {
   invoice: SupplierInvoice | null;

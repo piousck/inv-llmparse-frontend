@@ -16,6 +16,7 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { AccountingYear } from '../../types/api';
 import { apiService } from '../../services/api';
+import { useDateFormat } from '../../lib/dateUtils';
 
 interface AccountingYearsViewProps {
   orgId: string;
@@ -30,6 +31,7 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
   isAdmin,
   onShowToast,
 }) => {
+  const { formatDate } = useDateFormat();
   const [years, setYears] = useState<AccountingYear[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -285,9 +287,9 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
                       <span>{year.name}</span>
                     </td>
                     <td className="py-3 px-3 font-mono text-[11px] text-muted-foreground">
-                      <span>{year.start_date}</span>
+                      <span>{formatDate(year.start_date)}</span>
                       <span className="mx-1.5 text-muted-foreground/60">→</span>
-                      <span className="font-bold text-foreground">{year.end_date}</span>
+                      <span className="font-bold text-foreground">{formatDate(year.end_date)}</span>
                     </td>
                     <td className="py-3 px-3">
                       {year.is_closed ? (
@@ -304,7 +306,7 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
                       {year.is_closed ? (
                         <div className="leading-tight">
                           <span className="block text-foreground font-medium">
-                            {year.closed_at ? new Date(year.closed_at).toLocaleDateString() : 'Yes'}
+                            {year.closed_at ? formatDate(year.closed_at) : 'Yes'}
                           </span>
                           <span className="text-[10px] text-muted-foreground truncate max-w-[150px] block">
                             by {year.closed_by || 'Admin'}
@@ -544,8 +546,8 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
               <strong className="block text-sm font-bold">Locking Financial Period: {closingYear?.name}</strong>
               <p className="text-[11px] leading-relaxed">
                 Closing this accounting year will lock all invoices, credit notes, line items, and bank transaction allocations dated between{' '}
-                <span className="font-mono font-bold">{closingYear?.start_date}</span> and{' '}
-                <span className="font-mono font-bold">{closingYear?.end_date}</span>.
+                <span className="font-mono font-bold">{formatDate(closingYear?.start_date)}</span> and{' '}
+                <span className="font-mono font-bold">{formatDate(closingYear?.end_date)}</span>.
               </p>
             </div>
           </div>
@@ -600,8 +602,8 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
               <strong className="block text-sm font-bold">Reopen {reopeningYear?.name}?</strong>
               <p className="text-[11px] leading-relaxed">
                 Reopening this accounting year will unlock all documents dated between{' '}
-                <span className="font-mono font-bold">{reopeningYear?.start_date}</span> and{' '}
-                <span className="font-mono font-bold">{reopeningYear?.end_date}</span>, permitting modifications and corrections once again.
+                <span className="font-mono font-bold">{formatDate(reopeningYear?.start_date)}</span> and{' '}
+                <span className="font-mono font-bold">{formatDate(reopeningYear?.end_date)}</span>, permitting modifications and corrections once again.
               </p>
             </div>
           </div>

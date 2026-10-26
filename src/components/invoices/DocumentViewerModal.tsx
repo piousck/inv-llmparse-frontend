@@ -18,6 +18,7 @@ import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { formatCurrency } from '../../lib/utils';
+import { formatAppDate } from '../../lib/dateUtils';
 
 interface DocumentViewerModalProps {
   isOpen: boolean;
@@ -201,7 +202,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground truncate font-mono">
-                Job ID: {item.job_id} • Uploaded: {new Date(item.created_at).toLocaleString()}
+                Job ID: {item.job_id} • Uploaded: {formatAppDate(item.created_at)}
               </p>
             </div>
           </div>
@@ -457,7 +458,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                     Date
                   </span>
                   <span className="font-mono text-foreground block mt-0.5">
-                    {reconciliation?.statement_date || item.invoice_date || '—'}
+                    {formatAppDate(reconciliation?.statement_date || item.invoice_date)}
                   </span>
                 </div>
 

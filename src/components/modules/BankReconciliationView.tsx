@@ -33,6 +33,7 @@ import {
 } from '../../types/api';
 import { formatCurrency } from '../../lib/utils';
 import { DocumentSubTab } from '../layout/Sidebar';
+import { useDateFormat } from '../../lib/dateUtils';
 
 interface BankReconciliationViewProps {
   activeOrgId?: string;
@@ -49,6 +50,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
   onShowToast,
   onSelectDocumentSubTab,
 }) => {
+  const { formatDate } = useDateFormat();
   const [statements, setStatements] = useState<BankStatementDto[]>([]);
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<BankTransactionDto[]>([]);
@@ -88,32 +90,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
   };
 
   const formatTxnDate = (dStr: string | null | undefined): string => {
-    if (!dStr) return '—';
-    const m = dStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (m) {
-      const year = parseInt(m[1], 10);
-      const month = parseInt(m[2], 10) - 1;
-      const day = parseInt(m[3], 10);
-      const d = new Date(year, month, day);
-      return d.toLocaleDateString('en-IE', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-    }
-    try {
-      const ts = parseDateTimestamp(dStr);
-      if (ts > 0) {
-        return new Date(ts).toLocaleDateString('en-IE', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        });
-      }
-    } catch {
-      // fallback
-    }
-    return dStr;
+    return formatDate(dStr);
   };
 
   // 1. Fetch statements on mount or when activeOrgId / refreshKey changes

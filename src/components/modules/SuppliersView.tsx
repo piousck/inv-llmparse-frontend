@@ -22,6 +22,7 @@ import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import { SupplierInvoiceSidePanel } from './SupplierInvoiceSidePanel';
 import { formatSupplierName } from '../../lib/utils';
+import { useDateFormat } from '../../lib/dateUtils';
 
 interface SuppliersViewProps {
   activeOrgId: string;
@@ -180,18 +181,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
     }).format(num);
   };
 
-  const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return '—';
-    try {
-      return new Date(dateStr).toLocaleDateString('en-IE', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
-  };
+  const { formatDate } = useDateFormat();
 
   // Filter suppliers by search query
   const filteredSuppliers = suppliers.filter((sup) => {

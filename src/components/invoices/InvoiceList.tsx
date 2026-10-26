@@ -28,6 +28,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import { formatCurrency, formatSupplierName, cn } from '../../lib/utils';
+import { useDateFormat } from '../../lib/dateUtils';
 import { DocumentViewerModal } from './DocumentViewerModal';
 import { DocumentSubTab } from '../layout/Sidebar';
 
@@ -52,6 +53,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   documentSubTab = 'purchases',
   onSelectDocumentSubTab,
 }) => {
+  const { formatDate } = useDateFormat();
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
@@ -717,7 +719,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
 
                       {/* Date */}
                       <td className="px-2 py-2 text-muted-foreground font-mono text-[10px] font-normal whitespace-nowrap">
-                        {inv.invoice_date || '—'}
+                        {formatDate(inv.invoice_date)}
                       </td>
 
                       {/* Supplier */}
@@ -1139,7 +1141,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                         )}
                       </div>
                       <div className="text-muted-foreground text-[11px] truncate max-w-[220px]">
-                        {inv.seller_name || inv.original_filename} • {inv.invoice_date || 'No Date'}
+                        {inv.seller_name || inv.original_filename} • {formatDate(inv.invoice_date, undefined, 'No Date')}
                       </div>
                     </div>
                     <div className="font-mono font-semibold text-foreground">
