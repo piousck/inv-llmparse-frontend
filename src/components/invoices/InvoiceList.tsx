@@ -994,34 +994,27 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                 const n = inv.total_net != null ? Number(inv.total_net) : Math.round((g - v) * 100) / 100;
                 return sum + n;
               }, 0) * 100) / 100;
-              const isSubtotalCredit = subtotalGross < 0;
 
               return (
                 <tfoot className="border-t-2 border-border bg-muted font-mono text-[11px]">
                   <tr>
                     <td className="sticky bottom-0 bg-muted z-20 w-9 px-2 py-2 text-center border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]" />
                     <td className="sticky bottom-0 bg-muted z-20 px-2.5 py-2 font-normal text-foreground border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]" colSpan={3}>
-                      <span className="font-sans font-medium text-foreground text-[11px]">Page {page} Subtotal</span>{' '}
+                      <span className="font-sans font-bold text-foreground text-[11px]">Page {page} Subtotal</span>{' '}
                       <span className="text-[10px] text-muted-foreground font-sans font-normal">
                         ({invoices.length} {invoices.length === 1 ? 'document' : 'documents'})
                       </span>
                     </td>
-                    <td className={`sticky bottom-0 bg-muted z-20 px-2.5 py-2 text-right font-medium border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)] ${
-                      isSubtotalCredit ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-                    }`}>
+                    <td className="sticky bottom-0 bg-muted z-20 px-2.5 py-2 text-right font-bold text-foreground border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]">
                       {formatCurrency(subtotalNet)}
                     </td>
-                    <td className={`sticky bottom-0 bg-muted z-20 px-2.5 py-2 text-right font-normal border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)] ${
-                      isSubtotalCredit ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-emerald-600/80 dark:text-emerald-400/80'
-                    }`}>
+                    <td className="sticky bottom-0 bg-muted z-20 px-2.5 py-2 text-right font-bold text-foreground border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]">
                       {formatCurrency(subtotalVat)}
                     </td>
-                    <td className={`sticky bottom-0 bg-muted z-20 px-2.5 py-2 text-right font-semibold border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)] ${
-                      isSubtotalCredit ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-                    }`}>
+                    <td className="sticky bottom-0 bg-muted z-20 px-2.5 py-2 text-right font-bold text-foreground border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]">
                       {formatCurrency(subtotalGross)}
                     </td>
-                    <td colSpan={2} className="sticky bottom-0 bg-muted z-20 px-2 py-2 text-center text-[10px] font-sans font-medium text-muted-foreground whitespace-nowrap border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]">
+                    <td colSpan={2} className="sticky bottom-0 bg-muted z-20 px-2 py-2 text-center text-[10px] font-sans font-bold text-foreground whitespace-nowrap border-t-2 border-border shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.06)]">
                       Page Total
                     </td>
                     <td className="sticky bottom-0 right-0 bg-muted z-30 px-2 py-2 text-right text-[10px] font-sans text-muted-foreground min-w-[105px] border-t-2 border-border shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.06),0_-4px_8px_-2px_rgba(0,0,0,0.06)]" />
