@@ -212,22 +212,22 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
       {/* Trial Balance Main Ledger Table */}
       <div className="rounded-xl border border-border bg-card overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-[11px] border-collapse">
             <thead>
-              <tr className="bg-muted/50 border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3 px-3 w-10 text-center"></th>
-                <th className="py-3 px-3 w-24">GL Code</th>
-                <th className="py-3 px-4">Account Title</th>
-                <th className="py-3 px-3">Classification</th>
-                <th className="py-3 px-3 text-center">Txs</th>
-                <th className="py-3 px-4 text-right">{viewMode === 'net' ? 'Net Debit (€)' : 'Debit (€)'}</th>
-                <th className="py-3 px-4 text-right">{viewMode === 'net' ? 'Net Credit (€)' : 'Credit (€)'}</th>
+              <tr className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                <th className="py-2 px-2.5 w-10 text-center"></th>
+                <th className="py-2 px-2.5 w-24">GL Code</th>
+                <th className="py-2 px-2.5">Account Title</th>
+                <th className="py-2 px-2.5">Classification</th>
+                <th className="py-2 px-2.5 text-center">Txs</th>
+                <th className="py-2 px-2.5 text-right">{viewMode === 'net' ? 'Net Debit (€)' : 'Debit (€)'}</th>
+                <th className="py-2 px-2.5 text-right">{viewMode === 'net' ? 'Net Credit (€)' : 'Credit (€)'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
                     No general ledger accounts found matching your filter criteria.
                   </td>
                 </tr>
@@ -247,7 +247,7 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                           hasTransactions ? 'cursor-pointer hover:bg-muted/40' : ''
                         } ${isExpanded ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                       >
-                        <td className="py-2.5 px-3 text-center">
+                        <td className="py-2 px-2.5 text-center">
                           {hasTransactions && (
                             <button
                               type="button"
@@ -258,17 +258,17 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                               className="size-5 inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground transition-transform"
                             >
                               {isExpanded ? (
-                                <ChevronDown className="size-4 text-primary" />
+                                <ChevronDown className="size-3.5 text-primary" />
                               ) : (
-                                <ChevronRight className="size-4" />
+                                <ChevronRight className="size-3.5" />
                               )}
                             </button>
                           )}
                         </td>
-                        <td className="py-2.5 px-3 font-mono font-bold text-primary">
+                        <td className="py-2 px-2.5 font-mono font-bold text-primary text-[11px]">
                           {acc.code}
                         </td>
-                        <td className="py-2.5 px-4 font-semibold text-foreground">
+                        <td className="py-2 px-2.5 font-bold text-foreground text-[11px]">
                           <div className="flex items-center gap-2">
                             <span>{acc.name}</span>
                             {acc.code === '300' && (
@@ -293,15 +293,15 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                             )}
                           </div>
                         </td>
-                        <td className="py-2.5 px-3">
-                          <span className="text-[11px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted/60">
+                        <td className="py-2 px-2.5">
+                          <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted/60">
                             {acc.category}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-center font-mono">
+                        <td className="py-2 px-2.5 text-center font-mono">
                           {hasTransactions ? (
                             <span
-                              className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-[11px]"
+                              className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-[10px]"
                               title={`${new Set(acc.transactions.map((t) => t.invoiceId || t.invoiceNumber || t.id)).size} invoices (${acc.transactionCount} items)`}
                             >
                               {new Set(acc.transactions.map((t) => t.invoiceId || t.invoiceNumber || t.id)).size !== acc.transactionCount
@@ -309,17 +309,17 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                                 : acc.transactionCount}
                             </span>
                           ) : (
-                            <span className="text-muted-foreground text-[11px]">-</span>
+                            <span className="text-muted-foreground text-[10px]">-</span>
                           )}
                         </td>
-                        <td className="py-2.5 px-4 text-right font-mono font-semibold">
+                        <td className="py-2 px-2.5 text-right font-mono font-semibold text-[11px]">
                           {debitAmount > 0 ? (
                             <span className="text-foreground">{formatCurrency(debitAmount)}</span>
                           ) : (
                             <span className="text-muted-foreground/50">-</span>
                           )}
                         </td>
-                        <td className="py-2.5 px-4 text-right font-mono font-semibold">
+                        <td className="py-2 px-2.5 text-right font-mono font-semibold text-[11px]">
                           {creditAmount > 0 ? (
                             <span className="text-foreground">{formatCurrency(creditAmount)}</span>
                           ) : (
@@ -332,7 +332,7 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                       {isExpanded && (
                         <tr className="bg-muted/20 border-b border-border/70">
                           <td colSpan={7} className="p-0">
-                            <div className="px-6 py-4 bg-muted/15 border-y border-border/50">
+                            <div className="px-5 py-3 bg-muted/15 border-y border-border/50">
                               <InvoiceGroupedTransactions
                                 transactions={acc.transactions}
                                 accountCode={acc.code}
@@ -352,13 +352,13 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
 
             {/* Table Footer with Totals and Balance Check */}
             <tfoot>
-              <tr className="bg-muted/70 border-t-2 border-border font-bold text-xs text-foreground">
-                <td className="py-3 px-3"></td>
-                <td className="py-3 px-3 font-mono">TOTAL</td>
-                <td className="py-3 px-4">
+              <tr className="bg-muted/70 border-t-2 border-border font-bold text-[11px] text-foreground">
+                <td className="py-2 px-2.5"></td>
+                <td className="py-2 px-2.5 font-mono">TOTAL</td>
+                <td className="py-2 px-2.5">
                   {viewMode === 'net' ? 'Total Net Debits & Net Credits' : 'Total Debits & Total Credits'}
                 </td>
-                <td className="py-3 px-3">
+                <td className="py-2 px-2.5">
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1 ${
                       report.isBalanced
@@ -379,13 +379,13 @@ export const TrialBalanceTable: React.FC<TrialBalanceTableProps> = ({
                     )}
                   </span>
                 </td>
-                <td className="py-3 px-3 text-center font-mono">
+                <td className="py-2 px-2.5 text-center font-mono">
                   {report.accounts.reduce((s, a) => s + a.transactionCount, 0)}
                 </td>
-                <td className="py-3 px-4 text-right font-mono text-sm text-foreground">
+                <td className="py-2 px-2.5 text-right font-mono text-[11px] font-bold text-foreground">
                   {formatCurrency(viewMode === 'net' ? (report.totalNetDebits ?? report.totalDebits) : report.totalDebits)}
                 </td>
-                <td className="py-3 px-4 text-right font-mono text-sm text-foreground">
+                <td className="py-2 px-2.5 text-right font-mono text-[11px] font-bold text-foreground">
                   {formatCurrency(viewMode === 'net' ? (report.totalNetCredits ?? report.totalCredits) : report.totalCredits)}
                 </td>
               </tr>

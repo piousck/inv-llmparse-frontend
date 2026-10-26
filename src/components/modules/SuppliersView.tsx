@@ -550,18 +550,18 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
             {/* Main Ledger Table */}
             <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead className="bg-muted/40 text-[10px] uppercase font-bold text-muted-foreground border-b border-border">
+                <table className="w-full text-left border-collapse text-[11px]">
+                  <thead className="bg-muted text-[10px] uppercase font-bold text-muted-foreground border-b border-border">
                     <tr>
-                      <th className="py-3 px-3 w-8"></th>
-                      <th className="py-3 px-3 w-28">Date</th>
-                      <th className="py-3 px-3 w-28">Type</th>
-                      <th className="py-3 px-4 w-44">Reference</th>
-                      <th className="py-3 px-4">Description / Details</th>
-                      <th className="py-3 px-3 text-center w-28">Status</th>
-                      <th className="py-3 px-4 text-right w-32">Billed (+/-)</th>
-                      <th className="py-3 px-4 text-right w-32">Paid (-)</th>
-                      <th className="py-3 px-4 text-right w-36">Running Balance</th>
+                      <th className="py-2 px-2.5 w-8 text-center"></th>
+                      <th className="py-2 px-2.5 w-24">Date</th>
+                      <th className="py-2 px-2.5 w-24">Type</th>
+                      <th className="py-2 px-2.5 w-36">Reference</th>
+                      <th className="py-2 px-2.5">Description / Details</th>
+                      <th className="py-2 px-2.5 text-center w-24">Status</th>
+                      <th className="py-2 px-2.5 text-right w-28">Billed (+/-)</th>
+                      <th className="py-2 px-2.5 text-right w-28">Paid (-)</th>
+                      <th className="py-2 px-2.5 text-right w-32">Running Balance</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -605,55 +605,55 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                               }`}
                             >
                               {/* Expand chevron */}
-                              <td className="py-3 px-3 text-muted-foreground text-center">
+                              <td className="py-2 px-2.5 text-muted-foreground text-center">
                                 <button
                                   type="button"
                                   className="text-muted-foreground hover:text-foreground transition-colors mt-0.5"
                                 >
                                   {isExpanded ? (
-                                    <ChevronDown className="w-4 h-4 text-primary" />
+                                    <ChevronDown className="w-3.5 h-3.5 text-primary" />
                                   ) : (
-                                    <ChevronRight className="w-4 h-4" />
+                                    <ChevronRight className="w-3.5 h-3.5" />
                                   )}
                                 </button>
                               </td>
 
                               {/* Date */}
-                              <td className="py-3 px-3 font-medium text-foreground whitespace-nowrap">
+                              <td className="py-2 px-2.5 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
                                 {formatDate(row.date)}
                               </td>
 
                               {/* Type badge */}
-                              <td className="py-3 px-3 whitespace-nowrap">
+                              <td className="py-2 px-2.5 whitespace-nowrap">
                                 {isInvoice ? (
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     {row.isCreditNote ? (
-                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
-                                        <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" /> Credit Note
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                                        <FileText className="w-2.5 h-2.5 text-rose-600 dark:text-rose-400" /> Credit Note
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                        <FileText className="w-3 h-3" /> Bill
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                        <FileText className="w-2.5 h-2.5" /> Bill
                                       </span>
                                     )}
                                     {row.invoiceData?.is_cash_paid && (
                                       <span
                                         title={row.invoiceData.payment_details || 'Paid in Cash'}
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[10px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                                        className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full font-bold text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
                                       >
-                                        <Banknote className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Cash
+                                        <Banknote className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" /> Cash
                                       </span>
                                     )}
                                   </div>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                    <CreditCard className="w-3 h-3" /> Payment
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    <CreditCard className="w-2.5 h-2.5" /> Payment
                                   </span>
                                 )}
                               </td>
 
                               {/* Reference */}
-                              <td className="py-3 px-4 font-mono font-bold text-foreground">
+                              <td className="py-2 px-2.5 font-mono font-medium text-[11px] text-foreground">
                                 {isInvoice && row.invoiceData ? (
                                   <button
                                     type="button"
@@ -661,15 +661,15 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                                       e.stopPropagation();
                                       setPreviewInvoice(row.invoiceData!);
                                     }}
-                                    className={`text-left font-mono font-bold hover:underline inline-flex items-center gap-1.5 group cursor-pointer ${
+                                    className={`text-left font-mono font-medium hover:underline inline-flex items-center gap-1 group cursor-pointer ${
                                       row.isCreditNote
-                                        ? 'text-purple-600 dark:text-purple-400'
-                                        : 'text-blue-600 dark:text-blue-400'
+                                        ? 'text-rose-600 dark:text-rose-400'
+                                        : 'text-foreground hover:text-primary'
                                     }`}
                                     title={`Click to preview ${row.isCreditNote ? 'credit note' : 'invoice'} on right-hand side`}
                                   >
                                     <span>{row.reference}</span>
-                                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </button>
                                 ) : (
                                   row.reference
@@ -677,26 +677,26 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                               </td>
 
                               {/* Description */}
-                              <td className="py-3 px-4 text-muted-foreground">
+                              <td className="py-2 px-2.5 text-[11px] text-muted-foreground">
                                 <div className="line-clamp-1">{row.description}</div>
                               </td>
 
                               {/* Status */}
-                              <td className="py-3 px-3 text-center whitespace-nowrap">
-                                <Badge variant={row.statusVariant} className="text-[10px] px-2 py-0.5">
+                              <td className="py-2 px-2.5 text-center whitespace-nowrap">
+                                <Badge variant={row.statusVariant} className="text-[10px] px-1.5 py-0.5">
                                   {row.status}
                                 </Badge>
                               </td>
 
                               {/* Billed (+/-) */}
-                              <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
+                              <td className="py-2 px-2.5 text-right font-mono text-[11px] whitespace-nowrap">
                                 {isInvoice ? (
                                   row.isCreditNote ? (
-                                    <span className="font-bold text-purple-600 dark:text-purple-400">
+                                    <span className="font-semibold text-rose-600 dark:text-rose-400">
                                       -{formatCurrency(Math.abs(row.billedAmount))}
                                     </span>
                                   ) : (
-                                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                                       +{formatCurrency(row.billedAmount)}
                                     </span>
                                   )
@@ -706,9 +706,9 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                               </td>
 
                               {/* Paid (-) */}
-                              <td className="py-3 px-4 text-right font-mono whitespace-nowrap">
+                              <td className="py-2 px-2.5 text-right font-mono text-[11px] whitespace-nowrap">
                                 {!isInvoice ? (
-                                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                                     -{formatCurrency(row.paidAmount)}
                                   </span>
                                 ) : (
@@ -717,14 +717,14 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                               </td>
 
                               {/* Running Balance */}
-                              <td className="py-3 px-4 text-right font-mono font-bold whitespace-nowrap">
+                              <td className="py-2 px-2.5 text-right font-mono font-bold text-[11px] whitespace-nowrap">
                                 <span
                                   className={
                                     row.runningBalance > 0
-                                      ? 'text-foreground font-extrabold'
+                                      ? 'text-foreground font-bold'
                                       : row.runningBalance < 0
-                                      ? 'text-blue-500 font-extrabold'
-                                      : 'text-emerald-600 dark:text-emerald-400 font-extrabold'
+                                      ? 'text-rose-600 dark:text-rose-400 font-bold'
+                                      : 'text-emerald-600 dark:text-emerald-400 font-bold'
                                   }
                                 >
                                   {formatCurrency(row.runningBalance)}
@@ -795,26 +795,26 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                                           No itemized line items recorded for this invoice.
                                         </p>
                                       ) : (
-                                        <div className="border border-border rounded-lg overflow-hidden bg-card text-xs">
-                                          <table className="w-full text-left border-collapse">
-                                            <thead className="bg-muted/40 text-[10px] uppercase font-bold text-muted-foreground border-b border-border">
+                                        <div className="border border-border rounded-lg overflow-hidden bg-card text-[11px]">
+                                          <table className="w-full text-left border-collapse text-[11px]">
+                                            <thead className="bg-muted text-[10px] uppercase font-bold text-muted-foreground border-b border-border tracking-wider">
                                               <tr>
-                                                <th className="py-1.5 px-3 w-8">#</th>
-                                                <th className="py-1.5 px-3">Description</th>
-                                                <th className="py-1.5 px-3 w-28">GL Account</th>
-                                                <th className="py-1.5 px-3 w-20">VAT</th>
-                                                <th className="py-1.5 px-3 text-right w-24">Net</th>
-                                                <th className="py-1.5 px-3 text-right w-24">Gross</th>
+                                                <th className="py-1.5 px-2.5 w-8">#</th>
+                                                <th className="py-1.5 px-2.5">Description</th>
+                                                <th className="py-1.5 px-2.5 w-28">GL Account</th>
+                                                <th className="py-1.5 px-2.5 w-20">VAT</th>
+                                                <th className="py-1.5 px-2.5 text-right w-24">Net</th>
+                                                <th className="py-1.5 px-2.5 text-right w-24">Gross</th>
                                               </tr>
                                             </thead>
                                             <tbody className="divide-y divide-border">
                                               {row.invoiceData.line_items.map((item) => (
                                                 <tr key={item.id} className="hover:bg-muted/20">
-                                                  <td className="py-2 px-3 text-muted-foreground font-mono text-[11px]">
+                                                  <td className="py-1.5 px-2.5 text-muted-foreground font-mono text-[10px]">
                                                     {item.line_number}
                                                   </td>
-                                                  <td className="py-2 px-3">
-                                                    <div className="font-medium text-foreground">
+                                                  <td className="py-1.5 px-2.5">
+                                                    <div className="font-bold text-foreground text-[11px]">
                                                       {item.description || '—'}
                                                     </div>
                                                     {item.item_code && (
@@ -823,18 +823,18 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                                                       </span>
                                                     )}
                                                   </td>
-                                                  <td className="py-2 px-3">
+                                                  <td className="py-1.5 px-2.5">
                                                     <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px]">
                                                       {item.xero_account_code || 'Unassigned'}
                                                     </span>
                                                   </td>
-                                                  <td className="py-2 px-3 font-mono text-[11px] text-muted-foreground">
+                                                  <td className="py-1.5 px-2.5 font-mono text-[11px] text-muted-foreground">
                                                     {item.vat_rate !== null ? `${Number(item.vat_rate)}%` : '—'}
                                                   </td>
-                                                  <td className="py-2 px-3 text-right font-mono text-[11px]">
+                                                  <td className="py-1.5 px-2.5 text-right font-mono text-[11px]">
                                                     {formatCurrency(item.net_amount)}
                                                   </td>
-                                                  <td className="py-2 px-3 text-right font-mono font-bold text-[11px] text-foreground">
+                                                  <td className="py-1.5 px-2.5 text-right font-mono font-bold text-[11px] text-foreground">
                                                     {formatCurrency(item.gross_amount)}
                                                   </td>
                                                 </tr>
@@ -1025,16 +1025,16 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
       ) : (
         <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex-1 flex flex-col min-w-0 w-full">
           <div className="overflow-x-auto flex-1 w-full min-w-0">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-[11px]">
               <thead>
-                <tr className="bg-muted/40 border-b border-border text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
-                  <th className="px-3 py-2.5 font-bold">Supplier / Vendor</th>
-                  <th className="px-3 py-2.5 text-center font-bold">Bills</th>
-                  <th className="px-3 py-2.5 text-right font-bold">Total Invoiced</th>
-                  <th className="px-3 py-2.5 text-right font-bold">Total Paid</th>
-                  <th className="px-3 py-2.5 text-right font-bold">Outstanding Balance</th>
-                  <th className="px-3 py-2.5 text-center font-bold">Status</th>
-                  <th className="px-3 py-2.5 text-right font-bold">Actions</th>
+                <tr className="bg-muted border-b border-border text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                  <th className="px-2.5 py-2 font-bold">Supplier / Vendor</th>
+                  <th className="px-2.5 py-2 text-center font-bold">Bills</th>
+                  <th className="px-2.5 py-2 text-right font-bold">Total Invoiced</th>
+                  <th className="px-2.5 py-2 text-right font-bold">Total Paid</th>
+                  <th className="px-2.5 py-2 text-right font-bold">Outstanding Balance</th>
+                  <th className="px-2.5 py-2 text-center font-bold">Status</th>
+                  <th className="px-2.5 py-2 text-right font-bold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -1048,8 +1048,8 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       className="cursor-pointer transition-colors hover:bg-muted/40 group"
                     >
                       {/* Supplier Name + Aliases */}
-                      <td className="px-3 py-2.5">
-                        <div className="font-bold text-xs text-foreground group-hover:text-primary transition-colors">
+                      <td className="px-2.5 py-2">
+                        <div className="font-bold text-[11px] text-foreground group-hover:text-primary transition-colors">
                           {formatSupplierName(sup.canonical_name)}
                         </div>
                         {sup.aliases && sup.aliases.length > 0 && (
@@ -1057,13 +1057,13 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                             {sup.aliases.slice(0, 2).map((a) => (
                               <span
                                 key={a}
-                                className="px-1.5 py-0.2 rounded bg-muted text-muted-foreground text-[10px] font-mono"
+                                className="px-1.5 py-0.2 rounded bg-muted text-muted-foreground text-[9px] font-mono"
                               >
                                 {a}
                               </span>
                             ))}
                             {sup.aliases.length > 2 && (
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className="text-[9px] text-muted-foreground">
                                 +{sup.aliases.length - 2} more
                               </span>
                             )}
@@ -1072,26 +1072,26 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       </td>
 
                       {/* Invoice Count */}
-                      <td className="px-3 py-2.5 text-center">
-                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-[11px]">
+                      <td className="px-2.5 py-2 text-center">
+                        <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-[10px]">
                           {sup.invoice_count || 0} bill{sup.invoice_count === 1 ? '' : 's'}
                         </span>
                       </td>
 
                       {/* Total Invoiced */}
-                      <td className="px-3 py-2.5 text-right font-mono font-medium text-xs text-foreground">
+                      <td className="px-2.5 py-2 text-right font-mono font-medium text-[11px] text-foreground">
                         {formatCurrency(sup.total_invoiced)}
                       </td>
 
                       {/* Total Paid */}
-                      <td className="px-3 py-2.5 text-right font-mono font-medium text-xs text-emerald-600 dark:text-emerald-400">
+                      <td className="px-2.5 py-2 text-right font-mono font-medium text-[11px] text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(sup.total_paid)}
                       </td>
 
                       {/* Balance */}
-                      <td className="px-3 py-2.5 text-right">
+                      <td className="px-2.5 py-2 text-right">
                         <span
-                          className={`font-mono font-bold text-xs ${
+                          className={`font-mono font-bold text-[11px] ${
                             bal > 0
                               ? 'text-primary'
                               : bal < 0
@@ -1104,20 +1104,20 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       </td>
 
                       {/* Status */}
-                      <td className="px-3 py-2.5 text-center">
-                        <Badge variant={sup.is_active ? 'success' : 'secondary'} className="text-[10px] px-2 py-0.5">
+                      <td className="px-2.5 py-2 text-center">
+                        <Badge variant={sup.is_active ? 'success' : 'secondary'} className="text-[10px] px-1.5 py-0.5">
                           {sup.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </td>
 
                       {/* Actions */}
-                      <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-2.5 py-2 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={(e) => handleOpenEditModal(sup, e)}
-                            className="h-7 text-xs gap-1"
+                            className="h-6 px-2 text-[10px] font-semibold gap-1"
                           >
                             <Edit2 className="w-3 h-3" /> Edit
                           </Button>

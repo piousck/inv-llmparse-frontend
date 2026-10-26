@@ -263,29 +263,29 @@ export const CoaView: React.FC<CoaViewProps> = ({ embedded = false, orgId, indus
         </CardHeader>
 
         {/* Accounts Table */}
-        <div className="overflow-x-auto text-xs">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto text-[11px]">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-muted/40 border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                <th className="px-4 py-3 w-24">GL Code</th>
-                <th className="px-4 py-3">Account Name</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3 text-center w-28">Default VAT</th>
-                <th className="px-4 py-3">Statutory Notes / Rules</th>
-                <th className="px-4 py-3 text-center w-24">Status</th>
-                <th className="px-4 py-3 text-right w-24">Actions</th>
+              <tr className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                <th className="px-2.5 py-2 w-24">GL Code</th>
+                <th className="px-2.5 py-2">Account Name</th>
+                <th className="px-2.5 py-2">Category</th>
+                <th className="px-2.5 py-2 text-center w-28">Default VAT</th>
+                <th className="px-2.5 py-2">Statutory Notes / Rules</th>
+                <th className="px-2.5 py-2 text-center w-24">Status</th>
+                <th className="px-2.5 py-2 text-right w-24">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-2.5 py-8 text-center text-muted-foreground text-xs">
                     Loading Chart of Accounts…
                   </td>
                 </tr>
               ) : filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-2.5 py-8 text-center text-muted-foreground text-xs">
                     No matching GL accounts found.
                   </td>
                 </tr>
@@ -297,29 +297,29 @@ export const CoaView: React.FC<CoaViewProps> = ({ embedded = false, orgId, indus
                       !acc.is_active ? 'opacity-50' : ''
                     }`}
                   >
-                    <td className="px-4 py-3 font-mono font-bold text-primary">{acc.code}</td>
-                    <td className="px-4 py-3 font-bold text-foreground">{acc.name}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">
+                    <td className="px-2.5 py-2 font-mono font-bold text-primary text-[11px]">{acc.code}</td>
+                    <td className="px-2.5 py-2 font-bold text-foreground text-[11px]">{acc.name}</td>
+                    <td className="px-2.5 py-2">
+                      <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-medium bg-muted text-muted-foreground">
                         {acc.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center font-mono font-semibold">
+                    <td className="px-2.5 py-2 text-center font-mono font-semibold">
                       {acc.default_tax_rate ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
+                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
                           {acc.default_tax_rate}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground text-[11px]">
+                    <td className="px-2.5 py-2 text-muted-foreground text-[10px]">
                       {acc.description || '—'}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-2.5 py-2 text-center">
                       <button
                         onClick={() => handleToggleActive(acc)}
-                        className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
+                        className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors ${
                           acc.is_active
                             ? 'text-emerald-500 hover:text-emerald-600 bg-emerald-500/10'
                             : 'text-muted-foreground hover:text-foreground bg-muted'
@@ -328,23 +328,23 @@ export const CoaView: React.FC<CoaViewProps> = ({ embedded = false, orgId, indus
                       >
                         {acc.is_active ? (
                           <>
-                            <CheckCircle2 className="w-3 h-3" /> Active
+                            <CheckCircle2 className="w-2.5 h-2.5" /> Active
                           </>
                         ) : (
                           <>
-                            <XCircle className="w-3 h-3" /> Inactive
+                            <XCircle className="w-2.5 h-2.5" /> Inactive
                           </>
                         )}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2.5 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleOpenEdit(acc)}
                           className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                           title="Edit Account"
                         >
-                          <Edit2 className="w-3.5 h-3.5" />
+                          <Edit2 className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleDelete(acc)}

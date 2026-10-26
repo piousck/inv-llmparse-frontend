@@ -181,26 +181,26 @@ export const UsersView: React.FC<UsersViewProps> = ({
       {/* Users Directory Table */}
       <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex-1">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+          <table className="w-full text-left text-[11px] border-collapse">
             <thead>
-              <tr className="bg-muted/40 border-b border-border text-xs text-muted-foreground font-bold uppercase tracking-wider">
-                <th className="px-4 py-3.5">User / Email</th>
-                <th className="px-4 py-3.5">Assigned Org</th>
-                <th className="px-4 py-3.5">Access Tier / Role</th>
-                <th className="px-3 py-3.5 text-center">Status</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
+              <tr className="bg-muted border-b border-border text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                <th className="px-2.5 py-2">User / Email</th>
+                <th className="px-2.5 py-2">Assigned Org</th>
+                <th className="px-2.5 py-2">Access Tier / Role</th>
+                <th className="px-2.5 py-2 text-center">Status</th>
+                <th className="px-2.5 py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs">
                     Loading users...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs">
                     No users found matching search criteria.
                   </td>
                 </tr>
@@ -210,29 +210,29 @@ export const UsersView: React.FC<UsersViewProps> = ({
                   return (
                     <tr key={user.id} className="hover:bg-muted/40 transition-colors">
                       {/* Name & Email */}
-                      <td className="px-4 py-3.5">
-                        <div className="font-bold text-foreground flex items-center gap-1.5 text-sm">
+                      <td className="px-2.5 py-2">
+                        <div className="font-bold text-foreground flex items-center gap-1.5 text-[11px]">
                           {user.display_name}
                           {user.id === currentUser?.id && (
-                            <span className="text-xs px-1.5 py-0.2 rounded bg-primary/15 text-primary font-bold">
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-primary/15 text-primary font-bold">
                               You
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-muted-foreground font-mono">{user.email}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{user.email}</div>
                       </td>
 
                       {/* Organization */}
-                      <td className="px-4 py-3.5 font-semibold text-sm text-foreground">
+                      <td className="px-2.5 py-2 font-semibold text-[11px] text-foreground">
                         {userOrg?.name || 'Central Practice'}
                       </td>
 
                       {/* Role Selector */}
-                      <td className="px-4 py-3.5">
+                      <td className="px-2.5 py-2">
                         <select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
-                          className="px-2.5 py-1 bg-muted/60 border border-border rounded text-sm font-semibold text-foreground cursor-pointer focus:border-primary"
+                          className="px-2 py-0.5 bg-muted/60 border border-border rounded text-[10px] font-semibold text-foreground cursor-pointer focus:border-primary"
                         >
                           <option value="admin">Administrator</option>
                           <option value="standard">Standard (Finance)</option>
@@ -241,21 +241,21 @@ export const UsersView: React.FC<UsersViewProps> = ({
                       </td>
 
                       {/* Status */}
-                      <td className="px-3 py-3.5 text-center">
+                      <td className="px-2.5 py-2 text-center">
                         {user.is_active ? (
-                          <Badge variant="success">Active</Badge>
+                          <Badge variant="success" className="text-[10px] px-1.5 py-0.5">Active</Badge>
                         ) : (
-                          <Badge variant="destructive">Inactive</Badge>
+                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5">Inactive</Badge>
                         )}
                       </td>
 
                       {/* Action */}
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-2.5 py-2 text-right">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleActive(user.id, user.is_active)}
-                          className={`h-8 text-sm ${
+                          className={`h-6 px-2 text-[10px] font-semibold ${
                             user.is_active
                               ? 'text-destructive hover:bg-destructive/10'
                               : 'text-primary hover:bg-primary/10'

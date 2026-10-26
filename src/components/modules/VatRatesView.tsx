@@ -24,23 +24,23 @@ export const VatRatesView: React.FC = () => {
           <Badge variant="success">Revenue Ireland Compliant</Badge>
         </CardHeader>
 
-        <div className="overflow-x-auto text-xs">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto text-[11px]">
+          <table className="w-full text-left text-[11px] border-collapse">
             <thead>
-              <tr className="bg-muted/40 border-b border-border text-[10px] uppercase font-bold text-muted-foreground">
-                <th className="px-4 py-3 w-24">RTD Code</th>
-                <th className="px-4 py-3 w-28">Statutory Rate</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Irish Commerce Examples</th>
+              <tr className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                <th className="px-2.5 py-2 w-24">RTD Code</th>
+                <th className="px-2.5 py-2 w-28">Statutory Rate</th>
+                <th className="px-2.5 py-2">Description</th>
+                <th className="px-2.5 py-2">Irish Commerce Examples</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {IRISH_VAT_RATES.map((rate) => (
                 <tr key={rate.code} className="hover:bg-muted/40 transition-colors">
-                  <td className="px-4 py-3 font-mono font-bold text-primary">{rate.code}</td>
-                  <td className="px-4 py-3 font-mono font-bold text-foreground">{rate.rate.toFixed(1)}%</td>
-                  <td className="px-4 py-3 font-semibold text-foreground">{rate.description}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-[11px]">{rate.examples}</td>
+                  <td className="px-2.5 py-2 font-mono font-bold text-primary text-[11px]">{rate.code}</td>
+                  <td className="px-2.5 py-2 font-mono font-bold text-foreground text-[11px]">{rate.rate.toFixed(1)}%</td>
+                  <td className="px-2.5 py-2 font-bold text-foreground text-[11px]">{rate.description}</td>
+                  <td className="px-2.5 py-2 text-muted-foreground text-[10px]">{rate.examples}</td>
                 </tr>
               ))}
             </tbody>

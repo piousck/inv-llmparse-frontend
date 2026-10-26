@@ -67,33 +67,33 @@ export const SalesView: React.FC<SalesViewProps> = ({ onShowToast }) => {
         <Card>
           <CardHeader>
             <CardTitle className="text-xs">Sales Coding & RTD Tax Distribution</CardTitle>
-            <span className="text-[11px] text-muted-foreground">Current Billing Cycle</span>
+            <span className="text-[10px] text-muted-foreground">Current Billing Cycle</span>
           </CardHeader>
-          <div className="overflow-x-auto text-xs">
-            <table className="w-full text-left">
+          <div className="overflow-x-auto text-[11px]">
+            <table className="w-full text-left text-[11px] border-collapse">
               <thead>
-                <tr className="bg-muted/40 border-b border-border text-[10px] uppercase font-bold text-muted-foreground">
-                  <th className="px-4 py-2.5">Customer / Debtor</th>
-                  <th className="px-3 py-2.5 text-right">Net Value</th>
-                  <th className="px-3 py-2.5 text-right">Output VAT</th>
-                  <th className="px-3 py-2.5 text-center">Rate</th>
-                  <th className="px-3 py-2.5">Revenue GL</th>
-                  <th className="px-4 py-2.5 text-center">Confidence</th>
+                <tr className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                  <th className="px-2.5 py-2">Customer / Debtor</th>
+                  <th className="px-2.5 py-2 text-right">Net Value</th>
+                  <th className="px-2.5 py-2 text-right">Output VAT</th>
+                  <th className="px-2.5 py-2 text-center">Rate</th>
+                  <th className="px-2.5 py-2">Revenue GL</th>
+                  <th className="px-2.5 py-2 text-center">Confidence</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
                 {MOCK_SALES_ITEMS.map((item) => (
                   <tr key={item.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-foreground">{item.customer}</td>
-                    <td className="px-3 py-3 text-right font-mono font-bold text-foreground">
+                    <td className="px-2.5 py-2 font-bold text-foreground text-[11px]">{item.customer}</td>
+                    <td className="px-2.5 py-2 text-right font-mono font-bold text-foreground text-[11px]">
                       {formatCurrency(item.net)}
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-muted-foreground font-semibold">
+                    <td className="px-2.5 py-2 text-right font-mono text-muted-foreground font-semibold text-[11px]">
                       {formatCurrency(item.vat)}
                     </td>
-                    <td className="px-3 py-3 text-center font-mono font-semibold">{item.rate}</td>
-                    <td className="px-3 py-3 font-mono font-semibold text-primary">{item.revenueGl}</td>
-                    <td className="px-4 py-3 text-center font-mono font-bold text-emerald-600">
+                    <td className="px-2.5 py-2 text-center font-mono font-semibold text-[11px]">{item.rate}</td>
+                    <td className="px-2.5 py-2 font-mono font-semibold text-primary text-[11px]">{item.revenueGl}</td>
+                    <td className="px-2.5 py-2 text-center font-mono font-bold text-emerald-600 text-[10px]">
                       {item.confidence}
                     </td>
                   </tr>

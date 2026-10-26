@@ -195,25 +195,25 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="size-4 text-muted-foreground absolute left-3 top-2.5" />
+            <Search className="size-3.5 text-muted-foreground absolute left-2.5 top-2" />
             <input
               type="text"
               placeholder="Filter documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 pl-9 pr-3 text-base bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring w-40 sm:w-52"
+              className="h-7.5 pl-8 pr-2.5 text-xs bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring w-40 sm:w-52"
             />
           </div>
 
-          <Button variant="outline" size="sm" className="h-9 text-base font-medium gap-1.5 border-border">
-            <Columns className="size-4" />
+          <Button variant="outline" size="sm" className="h-7.5 text-xs font-medium gap-1.5 border-border">
+            <Columns className="size-3.5" />
             <span className="hidden lg:inline">Customize Columns</span>
             <span className="lg:hidden">Columns</span>
-            <ChevronDown className="size-3.5 text-muted-foreground ml-0.5" />
+            <ChevronDown className="size-3 text-muted-foreground ml-0.5" />
           </Button>
 
-          <Button variant="outline" size="sm" className="h-9 text-base font-medium gap-1 border-border">
-            <Plus className="size-4" />
+          <Button variant="outline" size="sm" className="h-7.5 text-xs font-medium gap-1 border-border">
+            <Plus className="size-3.5" />
             <span className="hidden sm:inline">Add Section</span>
           </Button>
         </div>
@@ -222,11 +222,11 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
       {/* Table Container matching shadcn Table specs */}
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-base border-collapse">
-            <thead className="bg-muted/50 border-b border-border text-foreground font-medium">
+          <table className="w-full text-left text-[11px] border-collapse">
+            <thead className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
               <tr>
-                <th className="w-8 py-3.5 pl-3 pr-1 text-center"></th>
-                <th className="w-8 py-3.5 px-2 text-center">
+                <th className="w-8 py-2 pl-2.5 pr-1 text-center"></th>
+                <th className="w-8 py-2 px-2 text-center">
                   <input
                     type="checkbox"
                     checked={selectedIds.length > 0 && selectedIds.length === paginatedRows.length}
@@ -234,12 +234,12 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
                     className="rounded border-border text-primary focus:ring-ring cursor-pointer"
                   />
                 </th>
-                <th className="py-3.5 px-4 font-semibold">Header</th>
-                <th className="py-3.5 px-4 font-semibold">Section Type</th>
-                <th className="py-3.5 px-4 text-right font-semibold">Target</th>
-                <th className="py-3.5 px-4 text-right font-semibold">Limit</th>
-                <th className="py-3.5 px-4 font-semibold">Reviewer</th>
-                <th className="w-10 py-3.5 pr-4 text-right"></th>
+                <th className="py-2 px-2.5 font-bold">Header</th>
+                <th className="py-2 px-2.5 font-bold">Section Type</th>
+                <th className="py-2 px-2.5 text-right font-bold">Target</th>
+                <th className="py-2 px-2.5 text-right font-bold">Limit</th>
+                <th className="py-2 px-2.5 font-bold">Reviewer</th>
+                <th className="w-10 py-2 pr-2.5 text-right"></th>
               </tr>
             </thead>
 
@@ -254,12 +254,12 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
                     }`}
                   >
                     {/* Drag Handle */}
-                    <td className="py-3.5 pl-3 pr-1 text-center cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground">
-                      <GripVertical className="size-4 mx-auto" />
+                    <td className="py-2 pl-2.5 pr-1 text-center cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground">
+                      <GripVertical className="size-3.5 mx-auto" />
                     </td>
 
                     {/* Checkbox */}
-                    <td className="py-3.5 px-2 text-center">
+                    <td className="py-2 px-2 text-center">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -269,13 +269,13 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
                     </td>
 
                     {/* Header / Invoice Title */}
-                    <td className="py-3.5 px-4 font-medium text-foreground">
-                      <div className="flex items-center gap-2">
+                    <td className="py-2 px-2.5 font-bold text-foreground">
+                      <div className="flex items-center gap-1.5">
                         {row.status === "verified" && (
-                          <CheckCircle2 className="size-4.5 text-emerald-600 shrink-0" />
+                          <CheckCircle2 className="size-3.5 text-emerald-600 shrink-0" />
                         )}
                         {row.status === "alert" && (
-                          <AlertTriangle className="size-4.5 text-amber-500 shrink-0" />
+                          <AlertTriangle className="size-3.5 text-amber-500 shrink-0" />
                         )}
                         <span
                           className="hover:underline cursor-pointer"
@@ -287,52 +287,52 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
                     </td>
 
                     {/* Section Type Badge */}
-                    <td className="py-3.5 px-4">
-                      <Badge variant="outline" className="text-sm font-normal rounded-md px-2.5 py-0.5 text-muted-foreground">
+                    <td className="py-2 px-2.5">
+                      <Badge variant="outline" className="text-[10px] font-normal rounded px-1.5 py-0.5 text-muted-foreground">
                         {row.type}
                       </Badge>
                     </td>
 
                     {/* Target (Editable) */}
-                    <td className="py-3.5 px-4 text-right font-mono text-base">
+                    <td className="py-2 px-2.5 text-right font-mono text-[11px]">
                       <input
                         type="text"
                         value={row.target}
                         onChange={(e) => handleUpdateField(row.id, "target", e.target.value)}
-                        className="h-8 w-24 text-right bg-transparent hover:bg-input/30 focus:bg-background focus:ring-1 focus:ring-ring rounded-md px-1.5 outline-none font-mono text-base"
+                        className="h-6 w-20 text-right bg-transparent hover:bg-input/30 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]"
                       />
                     </td>
 
                     {/* Limit (Editable) */}
-                    <td className="py-3.5 px-4 text-right font-mono text-base">
+                    <td className="py-2 px-2.5 text-right font-mono text-[11px]">
                       <input
                         type="text"
                         value={row.limit}
                         onChange={(e) => handleUpdateField(row.id, "limit", e.target.value)}
-                        className="h-8 w-24 text-right bg-transparent hover:bg-input/30 focus:bg-background focus:ring-1 focus:ring-ring rounded-md px-1.5 outline-none font-mono text-base"
+                        className="h-6 w-20 text-right bg-transparent hover:bg-input/30 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]"
                       />
                     </td>
 
                     {/* Reviewer */}
-                    <td className="py-3.5 px-4 text-base">
+                    <td className="py-2 px-2.5 text-[11px]">
                       {row.reviewer === "Assign reviewer" ? (
-                        <span className="text-muted-foreground/70 italic hover:text-foreground cursor-pointer text-sm">
+                        <span className="text-muted-foreground/70 italic hover:text-foreground cursor-pointer text-[10px]">
                           + Assign reviewer
                         </span>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <div className="size-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <div className="size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[10px]">
                             {row.reviewer.charAt(0)}
                           </div>
-                          <span className="text-foreground font-normal">{row.reviewer}</span>
+                          <span className="text-foreground font-medium">{row.reviewer}</span>
                         </div>
                       )}
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3.5 pr-4 text-right">
+                    <td className="py-2 pr-2.5 text-right">
                       <button className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors cursor-pointer">
-                        <MoreVertical className="size-4" />
+                        <MoreVertical className="size-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -343,13 +343,13 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
         </div>
 
         {/* Table Footer with Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3.5 border-t border-border bg-card text-base text-muted-foreground">
-          <div className="text-base text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-3 py-2 border-t border-border bg-card text-[11px] text-muted-foreground">
+          <div className="text-[11px] text-muted-foreground">
             {selectedIds.length} of {filteredRows.length} row(s) selected.
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-base font-medium text-foreground">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-medium text-foreground">
               Page {page} of {totalPages}
             </span>
 
@@ -357,38 +357,38 @@ export function DataTable({ onSelectInvoice }: { onSelectInvoice?: (id: string) 
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 border-border"
+                className="size-6 border-border"
                 disabled={page === 1}
                 onClick={() => setPage(1)}
               >
-                <ChevronsLeft className="size-4" />
+                <ChevronsLeft className="size-3.5" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 border-border"
+                className="size-6 border-border"
                 disabled={page === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
-                <ChevronLeft className="size-4" />
+                <ChevronLeft className="size-3.5" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 border-border"
+                className="size-6 border-border"
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               >
-                <ChevronRight className="size-4" />
+                <ChevronRight className="size-3.5" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 border-border"
+                className="size-6 border-border"
                 disabled={page === totalPages}
                 onClick={() => setPage(totalPages)}
               >
-                <ChevronsRight className="size-4" />
+                <ChevronsRight className="size-3.5" />
               </Button>
             </div>
           </div>

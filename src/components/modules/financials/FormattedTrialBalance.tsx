@@ -313,16 +313,16 @@ export const FormattedTrialBalance: React.FC<FormattedTrialBalanceProps> = ({
                       No invoices currently posted to this account category.
                     </div>
                   ) : (
-                    <table className="w-full text-left text-xs border-collapse">
+                    <table className="w-full text-left text-[11px] border-collapse">
                       <thead>
-                        <tr className="bg-muted/20 border-b border-border/50 text-[10px] uppercase font-semibold text-muted-foreground">
-                          <th className="py-2.5 px-3 w-10 text-center"></th>
-                          <th className="py-2.5 px-3 w-20">GL Code</th>
-                          <th className="py-2.5 px-4">Account Title</th>
-                          <th className="py-2.5 px-3 text-center">Txs</th>
-                          <th className="py-2.5 px-4 text-right">Debit (€)</th>
-                          <th className="py-2.5 px-4 text-right">Credit (€)</th>
-                          <th className="py-2.5 px-4 text-right">Net Position</th>
+                        <tr className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                          <th className="py-2 px-2.5 w-10 text-center"></th>
+                          <th className="py-2 px-2.5 w-20">GL Code</th>
+                          <th className="py-2 px-2.5">Account Title</th>
+                          <th className="py-2 px-2.5 text-center">Txs</th>
+                          <th className="py-2 px-2.5 text-right">Debit (€)</th>
+                          <th className="py-2 px-2.5 text-right">Credit (€)</th>
+                          <th className="py-2 px-2.5 text-right">Net Position</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/50">
@@ -337,9 +337,9 @@ export const FormattedTrialBalance: React.FC<FormattedTrialBalanceProps> = ({
                                 onClick={() => hasTxs && toggleAccount(acc.code)}
                                 className={`transition-colors ${
                                   hasTxs ? 'cursor-pointer hover:bg-muted/30' : ''
-                                } ${isAccExpanded ? 'bg-primary/5' : ''}`}
+                               } ${isAccExpanded ? 'bg-primary/5' : ''}`}
                               >
-                                <td className="py-2 px-3 text-center">
+                                <td className="py-2 px-2.5 text-center">
                                   {hasTxs && (
                                     <button
                                       type="button"
@@ -357,20 +357,20 @@ export const FormattedTrialBalance: React.FC<FormattedTrialBalanceProps> = ({
                                     </button>
                                   )}
                                 </td>
-                                <td className="py-2 px-3 font-mono font-bold text-primary">
+                                <td className="py-2 px-2.5 font-mono font-bold text-primary text-[11px]">
                                   {acc.code}
                                 </td>
-                                <td className="py-2 px-4 font-medium text-foreground">
+                                <td className="py-2 px-2.5 font-bold text-foreground text-[11px]">
                                   <div className="flex items-center gap-2">
                                     <span>{acc.name}</span>
                                     {acc.code === '300' && (
-                                      <span className="text-[10px] px-1.5 py-0.2 rounded-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-normal">
                                         Section 60(2) Resale
                                       </span>
                                     )}
                                   </div>
                                 </td>
-                                <td className="py-2 px-3 text-center font-mono">
+                                <td className="py-2 px-2.5 text-center font-mono">
                                   {hasTxs ? (
                                     <span
                                       className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-[10px]"
@@ -381,24 +381,24 @@ export const FormattedTrialBalance: React.FC<FormattedTrialBalanceProps> = ({
                                         : acc.transactionCount}
                                     </span>
                                   ) : (
-                                    <span className="text-muted-foreground">-</span>
+                                    <span className="text-muted-foreground text-[10px]">-</span>
                                   )}
                                 </td>
-                                <td className="py-2 px-4 text-right font-mono">
+                                <td className="py-2 px-2.5 text-right font-mono text-[11px]">
                                   {acc.totalDebit > 0 ? (
                                     formatCurrency(acc.totalDebit)
                                   ) : (
                                     <span className="text-muted-foreground/50">-</span>
                                   )}
                                 </td>
-                                <td className="py-2 px-4 text-right font-mono">
+                                <td className="py-2 px-2.5 text-right font-mono text-[11px]">
                                   {acc.totalCredit > 0 ? (
                                     formatCurrency(acc.totalCredit)
                                   ) : (
                                     <span className="text-muted-foreground/50">-</span>
                                   )}
                                 </td>
-                                <td className="py-2 px-4 text-right font-mono font-semibold">
+                                <td className="py-2 px-2.5 text-right font-mono font-semibold text-[11px]">
                                   <span
                                     className={
                                       net > 0
@@ -420,7 +420,7 @@ export const FormattedTrialBalance: React.FC<FormattedTrialBalanceProps> = ({
                               {isAccExpanded && (
                                 <tr className="bg-muted/15 border-b border-border/60">
                                   <td colSpan={7} className="p-0">
-                                    <div className="px-6 py-3.5 bg-muted/10">
+                                    <div className="px-5 py-3 bg-muted/10">
                                       <InvoiceGroupedTransactions
                                         transactions={acc.transactions}
                                         accountCode={acc.code}

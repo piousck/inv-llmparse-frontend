@@ -724,15 +724,15 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
 
                     {/* Transactions Table */}
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full text-left text-[11px]">
                         <thead>
-                          <tr className="bg-muted/30 border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
-                            <th className="px-3 py-2.5 w-12 text-center">#</th>
-                            <th className="px-3 py-2.5 w-28">Date</th>
-                            <th className="px-4 py-2.5">Description / Payee</th>
-                            <th className="px-3 py-2.5 w-28">Reference</th>
-                            <th className="px-4 py-2.5 text-right w-36">Amount</th>
-                            <th className="px-4 py-2.5 text-right w-36">Running Balance</th>
+                          <tr className="bg-muted border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                            <th className="px-2.5 py-2 w-12 text-center">#</th>
+                            <th className="px-2.5 py-2 w-28">Date</th>
+                            <th className="px-2.5 py-2">Description / Payee</th>
+                            <th className="px-2.5 py-2 w-28">Reference</th>
+                            <th className="px-2.5 py-2 text-right w-36">Amount</th>
+                            <th className="px-2.5 py-2 text-right w-36">Running Balance</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
@@ -772,46 +772,46 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
 
                               return (
                                 <tr key={tx.id || idx} className="hover:bg-muted/30 transition-colors">
-                                  <td className="px-3 py-2.5 text-center font-mono text-[10px] text-muted-foreground">
+                                  <td className="px-2.5 py-2 text-center font-mono text-[10px] text-muted-foreground">
                                     {rowNumber}
                                   </td>
-                                  <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
+                                  <td className="px-2.5 py-2 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
                                     {formatTxnDate(tx.txn_date)}
                                   </td>
-                                  <td className="px-4 py-2.5">
+                                  <td className="px-2.5 py-2">
                                     <div className="flex flex-col">
                                       {tx.counterparty_name && (
-                                        <span className="font-bold text-foreground text-xs">
+                                        <span className="font-bold text-foreground text-[11px]">
                                           {tx.counterparty_name}
                                         </span>
                                       )}
                                       <span
                                         className={`${
                                           tx.counterparty_name
-                                            ? 'text-[11px] text-muted-foreground'
-                                            : 'font-semibold text-foreground text-xs'
+                                            ? 'text-[10px] text-muted-foreground'
+                                            : 'font-semibold text-foreground text-[11px]'
                                         }`}
                                       >
                                         {mainDesc}
                                       </span>
                                       {subDesc && (
-                                        <span className="text-[10px] text-primary/80 font-mono mt-0.5">
+                                        <span className="text-[9px] text-primary/80 font-mono mt-0.5">
                                           {subDesc}
                                         </span>
                                       )}
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
+                                  <td className="px-2.5 py-2 font-mono text-[10px] text-muted-foreground">
                                     {tx.reference_text || '—'}
                                   </td>
-                                  <td className="px-4 py-2.5 text-right font-mono font-bold whitespace-nowrap">
+                                  <td className="px-2.5 py-2 text-right font-mono font-semibold text-[11px] whitespace-nowrap">
                                     {isDebit ? (
                                       <span className="text-rose-600">-{formatCurrency(amt)}</span>
                                     ) : (
                                       <span className="text-emerald-600">+{formatCurrency(amt)}</span>
                                     )}
                                   </td>
-                                  <td className="px-4 py-2.5 text-right font-mono text-[11px] text-muted-foreground whitespace-nowrap">
+                                  <td className="px-2.5 py-2 text-right font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                                     {runningBal !== null ? formatCurrency(runningBal) : '—'}
                                   </td>
                                 </tr>

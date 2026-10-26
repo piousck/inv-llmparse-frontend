@@ -262,14 +262,14 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold text-[11px]">
+            <table className="w-full text-left text-[11px] border-collapse">
+              <thead className="bg-muted border-b border-border text-muted-foreground font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="py-2.5 px-3">Financial Year</th>
-                  <th className="py-2.5 px-3">Date Range (Cutoff)</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Closed Details</th>
-                  <th className="py-2.5 px-3 text-right">Actions</th>
+                  <th className="py-2 px-2.5">Financial Year</th>
+                  <th className="py-2 px-2.5">Date Range (Cutoff)</th>
+                  <th className="py-2 px-2.5">Status</th>
+                  <th className="py-2 px-2.5">Closed Details</th>
+                  <th className="py-2 px-2.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -278,7 +278,7 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
                     key={year.id}
                     className={`transition-colors ${year.is_closed ? 'bg-amber-500/5' : 'hover:bg-muted/20'}`}
                   >
-                    <td className="py-3 px-3 font-bold font-mono text-foreground flex items-center gap-2">
+                    <td className="py-2 px-2.5 font-bold font-mono text-foreground flex items-center gap-2 text-[11px]">
                       {year.is_closed ? (
                         <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                       ) : (
@@ -286,29 +286,29 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
                       )}
                       <span>{year.name}</span>
                     </td>
-                    <td className="py-3 px-3 font-mono text-[11px] text-muted-foreground">
+                    <td className="py-2 px-2.5 font-mono text-[10px] text-muted-foreground">
                       <span>{formatDate(year.start_date)}</span>
                       <span className="mx-1.5 text-muted-foreground/60">→</span>
                       <span className="font-bold text-foreground">{formatDate(year.end_date)}</span>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-2 px-2.5">
                       {year.is_closed ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap">
-                          <Lock className="w-3 h-3" /> Closed &amp; Locked
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 whitespace-nowrap">
+                          <Lock className="w-2.5 h-2.5" /> Closed &amp; Locked
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
-                          <CheckCircle2 className="w-3 h-3" /> Open / Active
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
+                          <CheckCircle2 className="w-2.5 h-2.5" /> Open / Active
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-[11px] text-muted-foreground">
+                    <td className="py-2 px-2.5 text-[10px] text-muted-foreground">
                       {year.is_closed ? (
                         <div className="leading-tight">
-                          <span className="block text-foreground font-medium">
+                          <span className="block text-foreground font-medium text-[11px]">
                             {year.closed_at ? formatDate(year.closed_at) : 'Yes'}
                           </span>
-                          <span className="text-[10px] text-muted-foreground truncate max-w-[150px] block">
+                          <span className="text-[9px] text-muted-foreground truncate max-w-[150px] block">
                             by {year.closed_by || 'Admin'}
                           </span>
                         </div>
@@ -316,7 +316,7 @@ export const AccountingYearsView: React.FC<AccountingYearsViewProps> = ({
                         <span className="text-muted-foreground/60 italic">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-2 px-2.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* Admin Cutoff & Date Adjustment */}
                         {isAdmin && (

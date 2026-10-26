@@ -355,57 +355,57 @@ export const SupplierInvoiceSidePanel: React.FC<SupplierInvoiceSidePanelProps> =
               ) : (
                 <div className="border border-border rounded-xl overflow-hidden bg-card shadow-2xs">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead className="bg-muted/40 text-[10px] uppercase font-bold text-muted-foreground border-b border-border">
+                    <table className="w-full text-left border-collapse text-[11px]">
+                      <thead className="bg-muted text-[10px] uppercase font-bold text-muted-foreground border-b border-border tracking-wider">
                         <tr>
-                          <th className="py-2.5 px-3 w-10 text-center">#</th>
-                          <th className="py-2.5 px-3">Description</th>
-                          <th className="py-2.5 px-3 text-right">Qty</th>
-                          <th className="py-2.5 px-3 text-right">Unit Price</th>
-                          <th className="py-2.5 px-3 text-right">Net</th>
-                          <th className="py-2.5 px-3 text-center">VAT</th>
-                          <th className="py-2.5 px-3 text-right">Gross</th>
-                          <th className="py-2.5 px-3 text-center">GL Code</th>
+                          <th className="py-2 px-2.5 w-10 text-center">#</th>
+                          <th className="py-2 px-2.5">Description</th>
+                          <th className="py-2 px-2.5 text-right">Qty</th>
+                          <th className="py-2 px-2.5 text-right">Unit Price</th>
+                          <th className="py-2 px-2.5 text-right">Net</th>
+                          <th className="py-2 px-2.5 text-center">VAT</th>
+                          <th className="py-2 px-2.5 text-right">Gross</th>
+                          <th className="py-2 px-2.5 text-center">GL Code</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/60">
                         {lineItems.map((item, idx) => (
                           <tr key={item.id || idx} className="hover:bg-muted/20 transition-colors">
-                            <td className="py-2 px-3 text-center font-mono text-muted-foreground text-[11px]">
+                            <td className="py-2 px-2.5 text-center font-mono text-muted-foreground text-[10px]">
                               {item.line_number ?? idx + 1}
                             </td>
-                            <td className="py-2 px-3">
-                              <div className="font-medium text-foreground">{item.description || '—'}</div>
+                            <td className="py-2 px-2.5">
+                              <div className="font-bold text-foreground text-[11px]">{item.description || '—'}</div>
                               {item.item_code && (
                                 <span className="font-mono text-[10px] text-muted-foreground">
                                   SKU: {item.item_code}
                                 </span>
                               )}
                             </td>
-                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">
+                            <td className="py-2 px-2.5 text-right font-mono text-muted-foreground text-[11px]">
                               {item.quantity ?? '—'}
                             </td>
-                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">
+                            <td className="py-2 px-2.5 text-right font-mono text-muted-foreground text-[11px]">
                               {item.unit_price !== null && item.unit_price !== undefined
                                 ? formatCurrency(item.unit_price)
                                 : '—'}
                             </td>
-                            <td className="py-2 px-3 text-right font-mono font-semibold text-foreground">
+                            <td className="py-2 px-2.5 text-right font-mono font-semibold text-foreground text-[11px]">
                               {item.net_amount !== null && item.net_amount !== undefined
                                 ? formatCurrency(item.net_amount)
                                 : '—'}
                             </td>
-                            <td className="py-2 px-3 text-center whitespace-nowrap">
+                            <td className="py-2 px-2.5 text-center whitespace-nowrap">
                               <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground border border-border">
                                 {item.vat_code || (item.vat_rate !== null ? `${item.vat_rate}%` : '—')}
                               </span>
                             </td>
-                            <td className="py-2 px-3 text-right font-mono font-bold text-foreground">
+                            <td className="py-2 px-2.5 text-right font-mono font-bold text-foreground text-[11px]">
                               {item.gross_amount !== null && item.gross_amount !== undefined
                                 ? formatCurrency(item.gross_amount)
                                 : '—'}
                             </td>
-                            <td className="py-2 px-3 text-center whitespace-nowrap">
+                            <td className="py-2 px-2.5 text-center whitespace-nowrap">
                               {item.xero_account_code ? (
                                 <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold">
                                   {item.xero_account_code}
@@ -421,10 +421,10 @@ export const SupplierInvoiceSidePanel: React.FC<SupplierInvoiceSidePanelProps> =
                   </div>
 
                   {/* Lines Footer Totals */}
-                  <div className="p-3 bg-muted/30 border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
-                    <span className="text-muted-foreground text-[11px]">
+                  <div className="p-2.5 bg-muted/30 border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-[11px]">
+                    <span className="text-muted-foreground text-[10px]">
                       {lineItems.length} line item{lineItems.length === 1 ? '' : 's'} totaling{' '}
-                      <strong className={`font-mono ${isCreditNote ? 'text-purple-600 dark:text-purple-400' : 'text-foreground'}`}>
+                      <strong className={`font-mono text-[11px] ${isCreditNote ? 'text-purple-600 dark:text-purple-400' : 'text-foreground'}`}>
                         {isCreditNote
                           ? `-${formatCurrency(Math.abs(Number(invoice.total_gross) || 0))}`
                           : formatCurrency(invoice.total_gross)}
@@ -435,7 +435,7 @@ export const SupplierInvoiceSidePanel: React.FC<SupplierInvoiceSidePanelProps> =
                       variant="outline"
                       size="sm"
                       onClick={() => onEdit(invoice.id || invoice.job_id)}
-                      className="h-7 text-xs font-semibold gap-1.5 self-end sm:self-auto"
+                      className="h-6 px-2 text-[10px] font-semibold gap-1.5 self-end sm:self-auto"
                     >
                       <Edit2 className="w-3 h-3" />
                       <span>Edit Lines in Review Hub</span>

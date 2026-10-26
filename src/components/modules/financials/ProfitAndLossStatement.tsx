@@ -140,13 +140,13 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
         <div className="divide-y divide-border/60">
           {/* Section 1: Revenue / Turnover */}
           <div className="p-4 bg-muted/20">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
               <span>1. Turnover & Operating Revenue</span>
               <span>Amount (€)</span>
             </div>
 
             {pnl.turnover.lines.length === 0 ? (
-              <div className="py-2 text-xs text-muted-foreground italic">
+              <div className="py-2 text-[11px] text-muted-foreground italic">
                 No sales invoices parsed yet (purchases only scope).
               </div>
             ) : (
@@ -160,7 +160,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                     <div key={key} className="space-y-1">
                       <div
                         onClick={() => hasTxs && toggleLine(key)}
-                        className={`flex items-center justify-between py-2 px-2.5 rounded-lg text-xs transition-colors ${
+                        className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg text-[11px] transition-colors ${
                           hasTxs ? 'cursor-pointer hover:bg-muted/50' : ''
                         }`}
                       >
@@ -173,7 +173,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                               {isExp ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
                             </button>
                           )}
-                          <span className="font-medium text-foreground">{line.label}</span>
+                          <span className="font-bold text-foreground text-[11px]">{line.label}</span>
                           {hasTxs && (() => {
                             const invCount = new Set(line.transactions?.map((t) => t.invoiceId || t.invoiceNumber || t.id)).size;
                             const itemCount = line.transactions?.length || 0;
@@ -188,7 +188,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                             );
                           })()}
                         </div>
-                        <span className="font-mono font-bold text-foreground">
+                        <span className="font-mono font-bold text-[11px] text-foreground">
                           {formatCurrency(line.amount)}
                         </span>
                       </div>
@@ -208,21 +208,21 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-border font-bold text-xs text-foreground">
+            <div className="flex items-center justify-between pt-2 mt-2 border-t border-border font-bold text-[11px] text-foreground">
               <span>Total Turnover</span>
-              <span className="font-mono text-sm">{formatCurrency(pnl.turnover.total)}</span>
+              <span className="font-mono text-[11px] font-bold">{formatCurrency(pnl.turnover.total)}</span>
             </div>
           </div>
 
           {/* Section 2: Cost of Sales */}
           <div className="p-4 bg-muted/30">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
               <span>2. Cost of Sales (Direct Stock & Wholesale Inventory)</span>
               <span>Amount (€)</span>
             </div>
 
             {pnl.costOfSales.lines.length === 0 ? (
-              <div className="py-2 text-xs text-muted-foreground italic">
+              <div className="py-2 text-[11px] text-muted-foreground italic">
                 No direct inventory purchases posted (300 Purchases).
               </div>
             ) : (
@@ -236,7 +236,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                     <div key={key} className="space-y-1">
                       <div
                         onClick={() => hasTxs && toggleLine(key)}
-                        className={`flex items-center justify-between py-2 px-2.5 rounded-lg text-xs transition-colors ${
+                        className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg text-[11px] transition-colors ${
                           hasTxs ? 'cursor-pointer hover:bg-muted/50' : ''
                         }`}
                       >
@@ -249,7 +249,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                               {isExp ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
                             </button>
                           )}
-                          <span className="font-medium text-foreground">{line.label}</span>
+                          <span className="font-bold text-foreground text-[11px]">{line.label}</span>
                           {line.accountCode === '300' && (
                             <span className="text-[10px] px-1.5 py-0.2 rounded-sm bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold">
                               Section 60(2) Resale
@@ -269,7 +269,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                             );
                           })()}
                         </div>
-                        <span className="font-mono font-bold text-foreground">
+                        <span className="font-mono font-bold text-[11px] text-foreground">
                           {formatCurrency(line.amount)}
                         </span>
                       </div>
@@ -289,22 +289,22 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-border font-bold text-xs text-foreground">
+            <div className="flex items-center justify-between pt-2 mt-2 border-t border-border font-bold text-[11px] text-foreground">
               <span>Total Cost of Sales</span>
-              <span className="font-mono text-sm">{formatCurrency(pnl.costOfSales.total)}</span>
+              <span className="font-mono text-[11px] font-bold">{formatCurrency(pnl.costOfSales.total)}</span>
             </div>
           </div>
 
           {/* Gross Profit Strip */}
-          <div className="p-4 bg-muted/60 flex items-center justify-between border-y-2 border-border font-bold text-sm">
+          <div className="p-3 bg-muted/60 flex items-center justify-between border-y-2 border-border font-bold text-[11px]">
             <div className="flex items-center gap-2">
-              <span className="text-foreground font-black">GROSS PROFIT / (LOSS)</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold">
+              <span className="text-foreground font-black text-xs">GROSS PROFIT / (LOSS)</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold">
                 {pnl.grossMarginPercent}% Margin
               </span>
             </div>
             <span
-              className={`font-mono text-base ${
+              className={`font-mono text-xs font-bold ${
                 pnl.grossProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'
               }`}
             >
@@ -314,13 +314,13 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
 
           {/* Section 3: Operating Overheads */}
           <div className="p-4 bg-muted/20">
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
               <span>3. Operating Expenses & Administrative Overheads (400 series)</span>
               <span>Amount (€)</span>
             </div>
 
             {pnl.operatingExpenses.lines.length === 0 ? (
-              <div className="py-2 text-xs text-muted-foreground italic">
+              <div className="py-2 text-[11px] text-muted-foreground italic">
                 No overhead expenses recorded.
               </div>
             ) : (
@@ -334,7 +334,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                     <div key={key} className="space-y-1">
                       <div
                         onClick={() => hasTxs && toggleLine(key)}
-                        className={`flex items-center justify-between py-2 px-2.5 rounded-lg text-xs transition-colors ${
+                        className={`flex items-center justify-between py-1.5 px-2.5 rounded-lg text-[11px] transition-colors ${
                           hasTxs ? 'cursor-pointer hover:bg-muted/50' : ''
                         }`}
                       >
@@ -347,7 +347,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                               {isExp ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
                             </button>
                           )}
-                          <span className="font-medium text-foreground">{line.label}</span>
+                          <span className="font-bold text-foreground text-[11px]">{line.label}</span>
                           {line.accountCode === '413' && (
                             <span className="text-[10px] px-1.5 py-0.2 rounded-sm bg-amber-500/15 text-amber-700 dark:text-amber-300 font-semibold">
                               Section 60(1) Blocked
@@ -367,7 +367,7 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
                             );
                           })()}
                         </div>
-                        <span className="font-mono font-bold text-foreground">
+                        <span className="font-mono font-bold text-[11px] text-foreground">
                           {formatCurrency(line.amount)}
                         </span>
                       </div>
@@ -387,23 +387,23 @@ export const ProfitAndLossStatement: React.FC<ProfitAndLossStatementProps> = ({
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-border font-bold text-xs text-foreground">
+            <div className="flex items-center justify-between pt-2 mt-2 border-t border-border font-bold text-[11px] text-foreground">
               <span>Total Operating Expenses</span>
-              <span className="font-mono text-sm">{formatCurrency(pnl.operatingExpenses.total)}</span>
+              <span className="font-mono text-[11px] font-bold">{formatCurrency(pnl.operatingExpenses.total)}</span>
             </div>
           </div>
 
           {/* Operating Profit & Net Profit */}
-          <div className="p-4 bg-muted/40 space-y-2">
-            <div className="flex items-center justify-between font-bold text-xs text-foreground">
+          <div className="p-3 bg-muted/40 space-y-2">
+            <div className="flex items-center justify-between font-bold text-[11px] text-foreground">
               <span>Operating Profit (EBITDA)</span>
-              <span className="font-mono text-sm">{formatCurrency(pnl.operatingProfit)}</span>
+              <span className="font-mono text-[11px] font-bold">{formatCurrency(pnl.operatingProfit)}</span>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-border font-black text-sm text-foreground">
+            <div className="flex items-center justify-between pt-2 border-t border-border font-black text-xs text-foreground">
               <span>NET PROFIT / (LOSS) BEFORE TAX</span>
               <span
-                className={`font-mono text-base ${
+                className={`font-mono text-xs font-bold ${
                   pnl.netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'
                 }`}
               >
