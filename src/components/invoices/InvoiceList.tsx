@@ -27,7 +27,7 @@ import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
-import { formatCurrency, cn } from '../../lib/utils';
+import { formatCurrency, formatSupplierName, cn } from '../../lib/utils';
 import { DocumentViewerModal } from './DocumentViewerModal';
 import { DocumentSubTab } from '../layout/Sidebar';
 
@@ -739,7 +739,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                               : 'Non-accounting document'}
                           </span>
                         ) : (
-                          inv.seller_name || '—'
+                          formatSupplierName(inv.seller_name) || '—'
                         )}
                       </td>
 

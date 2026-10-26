@@ -21,6 +21,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import { SupplierInvoiceSidePanel } from './SupplierInvoiceSidePanel';
+import { formatSupplierName } from '../../lib/utils';
 
 interface SuppliersViewProps {
   activeOrgId: string;
@@ -382,7 +383,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
-                        {sup.canonical_name}
+                        {formatSupplierName(sup.canonical_name)}
                       </h1>
                       <Badge variant={sup.is_active ? 'success' : 'secondary'}>
                         {sup.is_active ? 'Active Vendor' : 'Inactive'}
@@ -920,7 +921,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         {previewInvoice && (
           <SupplierInvoiceSidePanel
             invoice={previewInvoice}
-            supplierName={sup?.canonical_name}
+            supplierName={formatSupplierName(sup?.canonical_name)}
             onClose={() => setPreviewInvoice(null)}
             onEdit={(invId) => {
               setPreviewInvoice(null);
@@ -1059,7 +1060,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       {/* Supplier Name + Aliases */}
                       <td className="px-3 py-2.5">
                         <div className="font-bold text-xs text-foreground group-hover:text-primary transition-colors">
-                          {sup.canonical_name}
+                          {formatSupplierName(sup.canonical_name)}
                         </div>
                         {sup.aliases && sup.aliases.length > 0 && (
                           <div className="flex items-center gap-1 mt-0.5 flex-wrap">

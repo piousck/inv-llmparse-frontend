@@ -194,3 +194,54 @@ export function isNonIrishPurchase(
   return false;
 }
 
+/**
+ * Formats a supplier name so it is never all uppercase and never all lowercase.
+ * Starting letters of each word are capitalized (Title Case).
+ * Common legal acronyms (LP, LLC, PLC, DAC, TSB, AIB, etc.) and prefixes (Mc, O') are preserved cleanly.
+ */
+export function formatSupplierName(name: string | null | undefined): string {
+  if (!name || !name.trim()) return '';
+  const trimmed = name.trim();
+
+  const capitalizeToken = (token: string): string => {
+    if (!token) return token;
+    // Keep leading punctuation like quotes, parentheses, brackets
+    if (['"', "'", '(', '['].includes(token[0])) {
+      return token[0] + capitalizeToken(token.slice(1));
+    }
+    // Handle apostrophes like O'Connor, D'Souza
+    if (token.length > 2 && token[1] === "'" && /^[a-zA-Z]$/.test(token[0])) {
+      return token[0].toUpperCase() + "'" + token.charAt(2).toUpperCase() + token.slice(3).toLowerCase();
+    }
+    // Handle Mc prefix like McDonald, McEntee
+    if (token.length > 3 && token.slice(0, 2).toLowerCase() === 'mc' && /^[a-zA-Z]$/.test(token[0])) {
+      return 'Mc' + token.charAt(2).toUpperCase() + token.slice(3).toLowerCase();
+    }
+    // Handle common legal/banking acronyms
+    const cleanUpper = token.toUpperCase().replace(/[.,)]+$/, '');
+    const legalAcronyms = new Set(['LP', 'LLC', 'PLC', 'DAC', 'TSB', 'AIB', 'BOI']);
+    if (legalAcronyms.has(cleanUpper)) {
+      const suffix = token.slice(cleanUpper.length);
+      return cleanUpper + suffix;
+    }
+    if (cleanUpper === 'LTD') {
+      const suffix = token.slice(cleanUpper.length);
+      return 'Ltd' + suffix;
+    }
+    // First letter uppercase, rest lowercase
+    return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+  };
+
+  const capitalizeWord = (word: string): string => {
+    if (word.includes('-')) {
+      return word.split('-').map(capitalizeToken).join('-');
+    }
+    if (word.includes('/')) {
+      return word.split('/').map(capitalizeToken).join('/');
+    }
+    return capitalizeToken(word);
+  };
+
+  return trimmed.split(/\s+/).map(capitalizeWord).join(' ');
+}
+
