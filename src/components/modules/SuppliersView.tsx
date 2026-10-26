@@ -12,7 +12,6 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
-  Receipt,
   ArrowUpDown,
   Banknote,
 } from 'lucide-react';
@@ -1033,23 +1032,21 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
           </p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex-1 flex flex-col min-w-0 w-full">
+          <div className="overflow-x-auto flex-1 w-full min-w-0">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-muted/40 text-[10px] uppercase font-bold text-muted-foreground border-b border-border">
-                <tr>
-                  <th className="py-3 px-4">Supplier / Vendor</th>
-                  <th className="py-3 px-4">VAT / Tax ID</th>
-                  <th className="py-3 px-4">Address</th>
-                  <th className="py-3 px-4 text-center">Bills</th>
-                  <th className="py-3 px-4 text-right">Total Invoiced</th>
-                  <th className="py-3 px-4 text-right">Total Paid</th>
-                  <th className="py-3 px-4 text-right">Outstanding Balance</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+              <thead>
+                <tr className="bg-muted/40 border-b border-border text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
+                  <th className="px-3 py-2.5 font-bold">Supplier / Vendor</th>
+                  <th className="px-3 py-2.5 text-center font-bold">Bills</th>
+                  <th className="px-3 py-2.5 text-right font-bold">Total Invoiced</th>
+                  <th className="px-3 py-2.5 text-right font-bold">Total Paid</th>
+                  <th className="px-3 py-2.5 text-right font-bold">Outstanding Balance</th>
+                  <th className="px-3 py-2.5 text-center font-bold">Status</th>
+                  <th className="px-3 py-2.5 text-right font-bold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border/60">
                 {filteredSuppliers.map((sup) => {
                   const bal = Number(sup.balance) || 0;
 
@@ -1057,84 +1054,51 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                     <tr
                       key={sup.id}
                       onClick={() => setSelectedSupplierId(sup.id)}
-                      className="hover:bg-muted/30 cursor-pointer transition-colors group"
+                      className="cursor-pointer transition-colors hover:bg-muted/40 group"
                     >
                       {/* Supplier Name + Aliases */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
-                            <Building2 className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedSupplierId(sup.id);
-                              }}
-                              className="font-bold text-foreground text-sm group-hover:text-primary hover:underline transition-colors text-left cursor-pointer"
-                              title="Click to view supplier activity ledger"
-                            >
-                              {sup.canonical_name}
-                            </button>
-                            {sup.aliases && sup.aliases.length > 0 && (
-                              <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                                {sup.aliases.slice(0, 2).map((a) => (
-                                  <span
-                                    key={a}
-                                    className="px-1.5 py-0.2 rounded bg-muted text-muted-foreground text-[10px] font-mono"
-                                  >
-                                    {a}
-                                  </span>
-                                ))}
-                                {sup.aliases.length > 2 && (
-                                  <span className="text-[10px] text-muted-foreground">
-                                    +{sup.aliases.length - 2} more
-                                  </span>
-                                )}
-                              </div>
+                      <td className="px-3 py-2.5">
+                        <div className="font-bold text-xs text-foreground group-hover:text-primary transition-colors">
+                          {sup.canonical_name}
+                        </div>
+                        {sup.aliases && sup.aliases.length > 0 && (
+                          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                            {sup.aliases.slice(0, 2).map((a) => (
+                              <span
+                                key={a}
+                                className="px-1.5 py-0.2 rounded bg-muted text-muted-foreground text-[10px] font-mono"
+                              >
+                                {a}
+                              </span>
+                            ))}
+                            {sup.aliases.length > 2 && (
+                              <span className="text-[10px] text-muted-foreground">
+                                +{sup.aliases.length - 2} more
+                              </span>
                             )}
                           </div>
-                        </div>
-                      </td>
-
-                      {/* VAT Number */}
-                      <td className="py-3 px-4 font-mono text-[11px] text-muted-foreground">
-                        {sup.vat_number || 'N/A'}
-                      </td>
-
-                      {/* Address */}
-                      <td className="py-3 px-4 text-muted-foreground max-w-xs truncate">
-                        {sup.address || '—'}
+                        )}
                       </td>
 
                       {/* Invoice Count */}
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedSupplierId(sup.id);
-                          }}
-                          className="px-2.5 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[11px] transition-colors cursor-pointer"
-                          title="Click to view activity ledger"
-                        >
+                      <td className="px-3 py-2.5 text-center">
+                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-[11px]">
                           {sup.invoice_count || 0} bill{sup.invoice_count === 1 ? '' : 's'}
-                        </button>
+                        </span>
                       </td>
 
                       {/* Total Invoiced */}
-                      <td className="py-3 px-4 text-right font-mono font-medium text-foreground">
+                      <td className="px-3 py-2.5 text-right font-mono font-medium text-xs text-foreground">
                         {formatCurrency(sup.total_invoiced)}
                       </td>
 
                       {/* Total Paid */}
-                      <td className="py-3 px-4 text-right font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                      <td className="px-3 py-2.5 text-right font-mono font-medium text-xs text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(sup.total_paid)}
                       </td>
 
                       {/* Balance */}
-                      <td className="py-3 px-4 text-right">
+                      <td className="px-3 py-2.5 text-right">
                         <span
                           className={`font-mono font-bold text-xs ${
                             bal > 0
@@ -1149,27 +1113,15 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       </td>
 
                       {/* Status */}
-                      <td className="py-3 px-4 text-center">
-                        <Badge variant={sup.is_active ? 'success' : 'secondary'} className="text-[11px] px-2 py-0.5">
-                          {sup.is_active ? 'Active Vendor' : 'Inactive'}
+                      <td className="px-3 py-2.5 text-center">
+                        <Badge variant={sup.is_active ? 'success' : 'secondary'} className="text-[10px] px-2 py-0.5">
+                          {sup.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedSupplierId(sup.id);
-                            }}
-                            className="h-7 text-xs gap-1 font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20"
-                            title="Open two-column drill-down activity ledger"
-                          >
-                            <Receipt className="w-3 h-3" /> View Ledger
-                          </Button>
+                      <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end">
                           <Button
                             variant="outline"
                             size="sm"

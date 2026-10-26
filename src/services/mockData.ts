@@ -504,6 +504,10 @@ export const MOCK_SUPPLIERS: Supplier[] = [
     business_description: 'Wholesale food, beverage, and retail grocery supplier. All inventory lines qualify as stock-in-trade resale under Section 60(2) VATCA 2010.',
     is_active: true,
     created_at: '2026-09-01T10:00:00Z',
+    invoice_count: 3,
+    total_invoiced: 4350.25,
+    total_paid: 1450.75,
+    balance: 2899.50,
   },
   {
     id: '3c9a1b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4d',
@@ -516,6 +520,10 @@ export const MOCK_SUPPLIERS: Supplier[] = [
     business_description: 'Office stationery, furniture, and ergonomic workplace hardware supplier.',
     is_active: true,
     created_at: '2026-09-02T11:00:00Z',
+    invoice_count: 2,
+    total_invoiced: 1250.00,
+    total_paid: 1250.00,
+    balance: 0.00,
   },
   {
     id: '4c9a1b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4e',
@@ -528,6 +536,10 @@ export const MOCK_SUPPLIERS: Supplier[] = [
     business_description: 'Commercial electricity and natural gas provider. Standard reduced rate 13.5% (T135).',
     is_active: true,
     created_at: '2026-09-02T12:00:00Z',
+    invoice_count: 1,
+    total_invoiced: 284.17,
+    total_paid: 0.00,
+    balance: 284.17,
   }
 ];
 
