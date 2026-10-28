@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   CheckCircle,
@@ -17,7 +17,6 @@ import {
   FileText,
   List,
   Sparkles,
-  X,
   MoreVertical,
 } from 'lucide-react';
 import { InvoiceDetail, LineItem, OrganizationGLAccount } from '../../types/api';
@@ -62,7 +61,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
   const [isInspectorOpen, setIsInspectorOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('invparse_inspector_open');
     if (saved !== null) return saved === 'true';
-    return typeof window !== 'undefined' ? window.innerWidth >= 1440 : false;
+    return false;
   });
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -88,44 +87,6 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
     };
     loadGLAccounts();
   }, [activeOrgId, invoice?.organization_id]);
-
-  // Height alignment: align LineItemInspector bottom with the reconciliation summary box
-  const reconcileBoxRef = useRef<HTMLDivElement>(null);
-  const inspectorRef = useRef<HTMLElement>(null);
-  const [inspectorHeight, setInspectorHeight] = useState<number | undefined>(undefined);
-
-  useLayoutEffect(() => {
-    const updateInspectorHeight = () => {
-      if (reconcileBoxRef.current && inspectorRef.current) {
-        const recRect = reconcileBoxRef.current.getBoundingClientRect();
-        const inspRect = inspectorRef.current.getBoundingClientRect();
-        const targetHeight = Math.round(recRect.bottom - inspRect.top);
-        if (targetHeight > 250) {
-          setInspectorHeight((prev) => (prev === targetHeight ? prev : targetHeight));
-        }
-      }
-    };
-
-    updateInspectorHeight();
-    const rafId = requestAnimationFrame(updateInspectorHeight);
-
-    let ro: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(() => {
-        updateInspectorHeight();
-      });
-      if (reconcileBoxRef.current) ro.observe(reconcileBoxRef.current);
-      const centerContainer = reconcileBoxRef.current?.closest('.flex-col');
-      if (centerContainer) ro.observe(centerContainer);
-    }
-
-    window.addEventListener('resize', updateInspectorHeight);
-    return () => {
-      cancelAnimationFrame(rafId);
-      ro?.disconnect();
-      window.removeEventListener('resize', updateInspectorHeight);
-    };
-  }, [invoice, selectedLineIndex, isCanvasExpanded, isInspectorOpen]);
 
   const handleReocr = async () => {
     if (!invoice?.id) return;
@@ -1158,20 +1119,12 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
         </div>
 
         {/* Adaptive Multi-Pane Workspace */}
-        <div
-          className={cn(
-            "grid grid-cols-1 gap-3 flex-1 min-h-0 overflow-hidden transition-all duration-200",
-            isCanvasExpanded
-              ? "lg:grid-cols-[50fr_50fr]"
-              : isInspectorOpen
-              ? "lg:grid-cols-[40fr_60fr] xl:grid-cols-[36fr_42fr_22fr] 2xl:grid-cols-[38fr_42fr_20fr]"
-              : "lg:grid-cols-[45fr_55fr]"
-          )}
-        >
+        <div className="flex flex-1 min-h-0 gap-3 overflow-hidden transition-all duration-200">
           {/* Left Column: Original Invoice Document Canvas */}
           <div
             className={cn(
-              "h-full min-h-0 flex flex-col overflow-hidden",
+              "h-full min-h-0 flex flex-col overflow-hidden transition-all duration-200",
+              isCanvasExpanded ? "flex-1" : isInspectorOpen ? "flex-[38_1_0%]" : "flex-[45_1_0%]",
               mobileViewTab !== 'canvas' && "hidden lg:flex"
             )}
           >
@@ -1195,7 +1148,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
             />
           </div>
 
-          {/* Right Column: Line Items & Sticky Reconciliation */}
+          {/* Center Column: Line Items & Sticky Reconciliation */}
           <div
             onClick={() => {
               if (isCanvasExpanded) {
@@ -1203,8 +1156,8 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
               }
             }}
             className={cn(
-              "h-full min-h-0 flex flex-col overflow-hidden gap-2 transition-all",
-              isCanvasExpanded && "cursor-pointer",
+              "h-full min-h-0 flex flex-col overflow-hidden gap-2 transition-all duration-200",
+              isCanvasExpanded ? "hidden" : isInspectorOpen ? "flex-[62_1_0%]" : "flex-[55_1_0%]",
               mobileViewTab !== 'lines' && "hidden lg:flex"
             )}
           >
@@ -1534,72 +1487,27 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
             </div>
           </div>
 
-          {/* Mobile Tab: Line Item Inspector View (visible on < lg when tab is selected) */}
-          <div className={cn("flex flex-col gap-3 min-w-0 lg:hidden", mobileViewTab !== 'inspector' && 'hidden')}>
+          {/* Right Column: Line Item Inspector (Minimised Bar or Expanded Panel, filling top-to-bottom) */}
+          <div
+            className={cn(
+              "h-full min-h-0 flex flex-col shrink-0 self-stretch transition-all duration-200",
+              isCanvasExpanded && "hidden",
+              mobileViewTab !== 'inspector' && "hidden lg:flex"
+            )}
+          >
             <LineItemInspector
               item={selectedItem}
-              isOpen={true}
-              onToggleOpen={() => setMobileViewTab('lines')}
-              onUpdateItem={(updated) => handleChangeLineItem(selectedLineIndex, updated)}
-              isForeignPurchase={isForeignPurchase}
-              currency={invoice.currency}
-              isLocked={isLocked}
-              glAccounts={glAccounts}
-            />
-          </div>
-
-          {/* Right Column: In-flow Line Item Inspector for wide screens (≥ 1280px / xl) */}
-          <div className={cn("hidden", !isCanvasExpanded && isInspectorOpen && "xl:block")}>
-            <LineItemInspector
-              inspectorRef={inspectorRef}
-              item={selectedItem}
+              lineIndex={selectedLineIndex}
               isOpen={isInspectorOpen}
               onToggleOpen={toggleInspector}
               onUpdateItem={(updated) => handleChangeLineItem(selectedLineIndex, updated)}
               isForeignPurchase={isForeignPurchase}
               currency={invoice.currency}
               isLocked={isLocked}
-              style={inspectorHeight ? { height: `${inspectorHeight}px` } : undefined}
               glAccounts={glAccounts}
             />
           </div>
         </div>
-
-        {/* Slide-over Inspector for Tablet / Compact screens (1024px to 1279px) */}
-        {isInspectorOpen && !isCanvasExpanded && (
-          <aside
-            aria-label="Line Item Inspector Panel"
-            className="hidden lg:flex xl:hidden absolute top-11 right-0 bottom-0 z-30 w-80 max-w-[85vw] bg-card border-l border-border shadow-2xl animate-in slide-in-from-right duration-200 flex-col overflow-y-auto p-4"
-          >
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-border shrink-0">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-                  Line Item Inspector
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleInspector}
-                className="size-7 text-muted-foreground hover:text-foreground"
-                title="Close Inspector Panel"
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-            <LineItemInspector
-              item={selectedItem}
-              isOpen={true}
-              onToggleOpen={toggleInspector}
-              onUpdateItem={(updated) => handleChangeLineItem(selectedLineIndex, updated)}
-              isForeignPurchase={isForeignPurchase}
-              currency={invoice.currency}
-              isLocked={isLocked}
-              glAccounts={glAccounts}
-            />
-          </aside>
-        )}
       </div>
 
       {/* Delete Confirmation Modal */}
