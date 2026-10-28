@@ -645,6 +645,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                     gross < 0 ||
                     net < 0 ||
                     inv.document_type === 'credit_note' ||
+                    (inv as any)?.is_credit_note ||
                     (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
                     (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
                   );
@@ -694,7 +695,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                             </span>
                           )}
                           {isCreditNote && (
-                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-rose-500/15 text-rose-700 dark:text-rose-300 font-sans font-bold border border-rose-500/30" title="Credit Note">
+                            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-red-500/15 text-red-700 dark:text-red-400 font-sans font-bold border border-red-500/30" title="Credit Note">
                               CR
                             </span>
                           )}
@@ -757,12 +758,12 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                         inv.job_status === 'failed' || inv.error_code === 'OTHER_DOCUMENT' || statusFilter === 'other' || (!inv.invoice_id && !inv.total_net)
                           ? 'text-muted-foreground'
                           : isCreditNote
-                          ? 'text-rose-600 dark:text-rose-400'
-                          : 'text-emerald-600 dark:text-emerald-400'
+                          ? 'text-red-700 dark:text-red-400 font-semibold'
+                          : 'text-foreground'
                       }`}>
                         {inv.job_status === 'failed' || inv.error_code === 'OTHER_DOCUMENT' || statusFilter === 'other' || (!inv.invoice_id && !inv.total_net)
                           ? '—'
-                          : formatCurrency(net, inv.currency)}
+                          : formatCurrency(isCreditNote ? -Math.abs(net) : net, inv.currency)}
                       </td>
 
                       {/* VAT */}
@@ -770,12 +771,12 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                         inv.job_status === 'failed' || inv.error_code === 'OTHER_DOCUMENT' || statusFilter === 'other' || (!inv.invoice_id && !inv.total_vat)
                           ? 'text-muted-foreground'
                           : isCreditNote
-                          ? 'text-rose-600/80 dark:text-rose-400/80 font-normal'
-                          : 'text-emerald-600/80 dark:text-emerald-400/80 font-normal'
+                          ? 'text-red-700 dark:text-red-400 font-medium'
+                          : 'text-foreground font-normal'
                       }`}>
                         {inv.job_status === 'failed' || inv.error_code === 'OTHER_DOCUMENT' || statusFilter === 'other' || (!inv.invoice_id && !inv.total_vat)
                           ? '—'
-                          : formatCurrency(vat, inv.currency)}
+                          : formatCurrency(isCreditNote ? -Math.abs(vat) : vat, inv.currency)}
                       </td>
 
                       {/* Gross */}
@@ -783,12 +784,12 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                         inv.job_status === 'failed' || inv.error_code === 'OTHER_DOCUMENT' || statusFilter === 'other' || (!gross && !inv.invoice_id)
                           ? 'text-muted-foreground'
                           : isCreditNote
-                          ? 'text-rose-600 dark:text-rose-400'
-                          : 'text-emerald-600 dark:text-emerald-400'
+                          ? 'text-red-700 dark:text-red-400 font-bold'
+                          : 'text-foreground'
                       }`}>
                         {inv.job_status === 'failed' || inv.error_code === 'OTHER_DOCUMENT' || statusFilter === 'other' || (!gross && !inv.invoice_id)
                           ? '—'
-                          : formatCurrency(gross, inv.currency)}
+                          : formatCurrency(isCreditNote ? -Math.abs(gross) : gross, inv.currency)}
                       </td>
 
                       {/* Status */}
@@ -984,17 +985,46 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
 
             {/* Page Subtotal */}
             {invoices.length > 0 && (() => {
-              const subtotalGross = Math.round(invoices.reduce((sum, inv) => sum + Number(inv.total_gross || 0), 0) * 100) / 100;
+              const subtotalGross = Math.round(invoices.reduce((sum, inv) => {
+                const g = Number(inv.total_gross || 0);
+                const isCR = Boolean(
+                  g < 0 ||
+                  Number(inv.total_net || 0) < 0 ||
+                  inv.document_type === 'credit_note' ||
+                  (inv as any)?.is_credit_note ||
+                  (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
+                  (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
+                );
+                return sum + (isCR ? -Math.abs(g) : g);
+              }, 0) * 100) / 100;
+
               const subtotalVat = Math.round(invoices.reduce((sum, inv) => {
                 const g = Number(inv.total_gross || 0);
                 const v = inv.total_vat != null ? Number(inv.total_vat) : (inv.total_net != null ? Math.round((g - Number(inv.total_net)) * 100) / 100 : 0);
-                return sum + v;
+                const isCR = Boolean(
+                  g < 0 ||
+                  Number(inv.total_net || 0) < 0 ||
+                  inv.document_type === 'credit_note' ||
+                  (inv as any)?.is_credit_note ||
+                  (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
+                  (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
+                );
+                return sum + (isCR ? -Math.abs(v) : v);
               }, 0) * 100) / 100;
+
               const subtotalNet = Math.round(invoices.reduce((sum, inv) => {
                 const g = Number(inv.total_gross || 0);
                 const v = inv.total_vat != null ? Number(inv.total_vat) : (inv.total_net != null ? Math.round((g - Number(inv.total_net)) * 100) / 100 : 0);
                 const n = inv.total_net != null ? Number(inv.total_net) : Math.round((g - v) * 100) / 100;
-                return sum + n;
+                const isCR = Boolean(
+                  g < 0 ||
+                  Number(inv.total_net || 0) < 0 ||
+                  inv.document_type === 'credit_note' ||
+                  (inv as any)?.is_credit_note ||
+                  (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
+                  (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
+                );
+                return sum + (isCR ? -Math.abs(n) : n);
               }, 0) * 100) / 100;
 
               return (

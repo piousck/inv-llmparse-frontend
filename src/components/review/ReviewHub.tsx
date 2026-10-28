@@ -345,7 +345,10 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
   const isForeignPurchase = isNonIrishPurchase(invoice);
   const isCreditNote = Boolean(
     (invoice?.total_gross !== undefined && invoice.total_gross < 0) ||
-    (invoice?.invoice_number && invoice.invoice_number.toLowerCase().includes('cn')) ||
+    (invoice?.total_net !== undefined && invoice.total_net < 0) ||
+    (invoice?.invoice_number && /^(cr|cn|crn)/i.test(invoice.invoice_number.trim())) ||
+    (invoice?.invoice_number && /credit[-_\s]?note/i.test(invoice.invoice_number)) ||
+    (invoice as any)?.document_type === 'credit_note' ||
     (invoice as any)?.is_credit_note
   );
   const claimableVat = isForeignPurchase
@@ -952,7 +955,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
               {invoice.invoice_number || 'INV-DRAFT'}
             </h1>
             {isCreditNote && (
-              <Badge variant="outline" className="text-[10px] bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30 font-bold uppercase tracking-wider py-0 px-1.5 shrink-0">
+              <Badge variant="outline" className="text-[10px] bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30 font-bold uppercase tracking-wider py-0 px-1.5 shrink-0">
                 Credit Note
               </Badge>
             )}
@@ -1261,7 +1264,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                     <span>Invoice Details</span>
                   </div>
                   {isCreditNote && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 font-bold uppercase tracking-wider">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-red-500/15 text-red-700 dark:text-red-400 border border-red-500/30 font-bold uppercase tracking-wider">
                       Credit Note
                     </span>
                   )}
@@ -1400,19 +1403,31 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                     Net
                   </span>
                   {!isLocked ? (
-                    <div className="flex items-center gap-0.5 font-mono font-semibold text-[11px] text-foreground shrink-0">
-                      <span>{invoice.currency || '€'}</span>
+                    <div className={cn(
+                      "flex items-center gap-0.5 font-mono font-semibold text-[11px] shrink-0",
+                      isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                    )}>
+                      <span>{isCreditNote ? '-' : ''}{invoice.currency || '€'}</span>
                       <input
                         type="number"
                         step="0.01"
-                        value={invoice.total_net ?? ''}
-                        onChange={(e) => handleUpdateInvoiceField('total_net', parseFloat(e.target.value) || 0)}
-                        className="w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]"
+                        value={invoice.total_net != null ? (isCreditNote ? Math.abs(invoice.total_net) : invoice.total_net) : ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          handleUpdateInvoiceField('total_net', isCreditNote ? -Math.abs(val) : val);
+                        }}
+                        className={cn(
+                          "w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]",
+                          isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                        )}
                       />
                     </div>
                   ) : (
-                    <span className="font-mono font-semibold text-[11px] text-foreground shrink-0">
-                      {formatCurrency(invoice.total_net, invoice.currency)}
+                    <span className={cn(
+                      "font-mono font-semibold text-[11px] shrink-0",
+                      isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                    )}>
+                      {formatCurrency(isCreditNote ? -Math.abs(Number(invoice.total_net) || 0) : invoice.total_net, invoice.currency)}
                     </span>
                   )}
                 </div>
@@ -1422,19 +1437,31 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                     VAT
                   </span>
                   {!isLocked ? (
-                    <div className="flex items-center gap-0.5 font-mono font-semibold text-[11px] text-foreground shrink-0">
-                      <span>{invoice.currency || '€'}</span>
+                    <div className={cn(
+                      "flex items-center gap-0.5 font-mono font-semibold text-[11px] shrink-0",
+                      isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                    )}>
+                      <span>{isCreditNote ? '-' : ''}{invoice.currency || '€'}</span>
                       <input
                         type="number"
                         step="0.01"
-                        value={invoice.total_vat ?? ''}
-                        onChange={(e) => handleUpdateInvoiceField('total_vat', parseFloat(e.target.value) || 0)}
-                        className="w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]"
+                        value={invoice.total_vat != null ? (isCreditNote ? Math.abs(invoice.total_vat) : invoice.total_vat) : ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          handleUpdateInvoiceField('total_vat', isCreditNote ? -Math.abs(val) : val);
+                        }}
+                        className={cn(
+                          "w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px]",
+                          isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                        )}
                       />
                     </div>
                   ) : (
-                    <span className="font-mono font-semibold text-[11px] text-foreground shrink-0">
-                      {formatCurrency(invoice.total_vat, invoice.currency)}
+                    <span className={cn(
+                      "font-mono font-semibold text-[11px] shrink-0",
+                      isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                    )}>
+                      {formatCurrency(isCreditNote ? -Math.abs(Number(invoice.total_vat) || 0) : invoice.total_vat, invoice.currency)}
                     </span>
                   )}
                 </div>
@@ -1444,18 +1471,22 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                     Total Gross
                   </span>
                   {!isLocked ? (
-                    <div className="flex items-center gap-0.5 font-mono font-bold text-[11px] shrink-0">
-                      <span className={isCreditNote ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}>
-                        {isCreditNote ? '-' : ''}{invoice.currency || '€'}
-                      </span>
+                    <div className={cn(
+                      "flex items-center gap-0.5 font-mono font-bold text-[11px] shrink-0",
+                      isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
+                    )}>
+                      <span>{isCreditNote ? '-' : ''}{invoice.currency || '€'}</span>
                       <input
                         type="number"
                         step="0.01"
-                        value={invoice.total_gross ?? ''}
-                        onChange={(e) => handleUpdateInvoiceField('total_gross', parseFloat(e.target.value) || 0)}
+                        value={invoice.total_gross != null ? (isCreditNote ? Math.abs(invoice.total_gross) : invoice.total_gross) : ''}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          handleUpdateInvoiceField('total_gross', isCreditNote ? -Math.abs(val) : val);
+                        }}
                         className={cn(
                           "w-16 sm:w-20 text-right bg-transparent hover:bg-input/20 focus:bg-background focus:ring-1 focus:ring-ring rounded px-1 outline-none font-mono text-[11px] font-bold",
-                          isCreditNote ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"
+                          isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
                         )}
                       />
                     </div>
@@ -1463,12 +1494,10 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
                     <span
                       className={cn(
                         "font-mono font-bold text-[11px] shrink-0",
-                        isCreditNote ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"
+                        isCreditNote ? "text-red-700 dark:text-red-400" : "text-foreground"
                       )}
                     >
-                      {isCreditNote
-                        ? `-${formatCurrency(Math.abs(Number(invoice.total_gross) || 0), invoice.currency)}`
-                        : formatCurrency(invoice.total_gross, invoice.currency)}
+                      {formatCurrency(isCreditNote ? -Math.abs(Number(invoice.total_gross) || 0) : invoice.total_gross, invoice.currency)}
                     </span>
                   )}
                 </div>
