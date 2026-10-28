@@ -743,7 +743,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
 
       {/* Totals Section in Cards (Requested by User) */}
       <div className="shrink-0 p-2.5 border-t border-border bg-card/90 backdrop-blur-xs select-none">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2">
           {/* Card 1: Net Total */}
           <div className="bg-background/80 border border-border/80 rounded-lg px-2.5 py-1.5 flex flex-col justify-between shadow-2xs">
             <span className="text-[9px] font-bold text-muted-foreground tracking-wider uppercase">

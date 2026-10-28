@@ -61,7 +61,8 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
   >(null);
   const [isInspectorOpen, setIsInspectorOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('invparse_inspector_open');
-    return saved !== null ? saved === 'true' : true;
+    if (saved !== null) return saved === 'true';
+    return typeof window !== 'undefined' ? window.innerWidth >= 1440 : false;
   });
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -904,7 +905,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
 
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full max-w-full h-full max-h-full overflow-hidden bg-background">
+    <div className="relative flex-1 flex flex-col min-w-0 w-full max-w-full h-full max-h-full overflow-hidden bg-background">
       {/* Consolidated Compact Action Header (Only ~44px, Stepper & Banner Merged) */}
       <div className="h-11 shrink-0 px-3 sm:px-4 border-b border-border bg-card/95 backdrop-blur-xs flex items-center justify-between gap-2 z-20 select-none shadow-2xs">
         {/* Left: Back button, prev/next, invoice number & badges */}
@@ -1156,13 +1157,15 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
           </button>
         </div>
 
-        {/* 2-Pane Split Workspace (Default 40% Document / 60% Extracted Data, Expanded 50% / 50%) */}
+        {/* Adaptive Multi-Pane Workspace */}
         <div
           className={cn(
             "grid grid-cols-1 gap-3 flex-1 min-h-0 overflow-hidden transition-all duration-200",
             isCanvasExpanded
-              ? "lg:grid-cols-[50fr_50fr] 2xl:grid-cols-[50fr_50fr]"
-              : "lg:grid-cols-[40fr_60fr] 2xl:grid-cols-[38fr_42fr_20fr]"
+              ? "lg:grid-cols-[50fr_50fr]"
+              : isInspectorOpen
+              ? "lg:grid-cols-[40fr_60fr] xl:grid-cols-[36fr_42fr_22fr] 2xl:grid-cols-[38fr_42fr_20fr]"
+              : "lg:grid-cols-[45fr_55fr]"
           )}
         >
           {/* Left Column: Original Invoice Document Canvas */}
@@ -1545,8 +1548,8 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
             />
           </div>
 
-          {/* Right Column: In-flow Line Item Inspector for wide screens (≥ 1536px / 2xl) */}
-          <div className={cn("hidden", !isCanvasExpanded && "2xl:block")}>
+          {/* Right Column: In-flow Line Item Inspector for wide screens (≥ 1280px / xl) */}
+          <div className={cn("hidden", !isCanvasExpanded && isInspectorOpen && "xl:block")}>
             <LineItemInspector
               inspectorRef={inspectorRef}
               item={selectedItem}
@@ -1562,11 +1565,11 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
           </div>
         </div>
 
-        {/* Floating Right-Side Slide-over Inspector for Laptop screens (1024px to 1535px) */}
+        {/* Slide-over Inspector for Tablet / Compact screens (1024px to 1279px) */}
         {isInspectorOpen && !isCanvasExpanded && (
           <aside
             aria-label="Line Item Inspector Panel"
-            className="hidden lg:flex 2xl:hidden fixed top-12 right-0 bottom-0 z-40 w-88 bg-card border-l border-border shadow-2xl animate-in slide-in-from-right duration-200 flex-col overflow-y-auto p-4"
+            className="hidden lg:flex xl:hidden absolute top-11 right-0 bottom-0 z-30 w-80 max-w-[85vw] bg-card border-l border-border shadow-2xl animate-in slide-in-from-right duration-200 flex-col overflow-y-auto p-4"
           >
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-border shrink-0">
               <div className="flex items-center gap-2">

@@ -312,7 +312,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
   );
 
   return (
-    <div className="flex-1 p-6 md:p-8 flex flex-col bg-background gap-6 max-w-[1600px] w-full mx-auto">
+    <div className="flex-1 p-6 md:p-8 flex flex-col bg-background gap-6 w-full">
       {/* Top Document Category Switcher */}
       <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs shrink-0 overflow-x-auto">
         <button

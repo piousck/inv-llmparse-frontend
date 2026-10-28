@@ -350,7 +350,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   }, [documentSubTab]);
 
   return (
-    <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col bg-background min-w-0 w-full max-w-full overflow-x-hidden">
+    <div className="flex-1 h-full min-h-0 p-3 sm:p-4 md:p-5 flex flex-col bg-background min-w-0 w-full max-w-full overflow-hidden">
       {/* Top Document Category Switcher */}
       <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs mb-3.5 shrink-0 overflow-x-auto">
         <button
@@ -568,8 +568,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
       )}
 
       {/* Invoices Table */}
-      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex-1 flex flex-col min-w-0 w-full">
-        <div className="overflow-auto flex-1 w-full min-w-0 max-h-[calc(100vh-275px)]">
+      <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex-1 min-h-0 flex flex-col min-w-0 w-full">
+        <div className="overflow-auto flex-1 min-h-0 w-full min-w-0">
           <table className="w-full text-left text-[11px] border-collapse min-w-[760px]">
             <thead>
               <tr className="bg-muted border-b border-border text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
@@ -713,7 +713,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                             </span>
                           ) : null}
                         </div>
-                        <div className="text-[9px] text-muted-foreground truncate max-w-[170px]" title={inv.original_filename}>
+                        <div className="text-[9px] text-muted-foreground truncate max-w-[170px] sm:max-w-[220px] md:max-w-xs lg:max-w-sm xl:max-w-md" title={inv.original_filename}>
                           {inv.original_filename}
                         </div>
                       </td>
@@ -724,7 +724,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                       </td>
 
                       {/* Supplier */}
-                      <td className="px-2.5 py-2 font-medium text-[11px] text-foreground truncate max-w-[190px]">
+                      <td className="px-2.5 py-2 font-medium text-[11px] text-foreground truncate max-w-[180px] sm:max-w-[220px] md:max-w-xs lg:max-w-sm xl:max-w-md">
                         {inv.invoice_direction === 'receivable' && (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20 mr-1.5">
                             Sales
@@ -1058,7 +1058,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
         </div>
 
         {/* Pagination Footer */}
-        <div className="px-4 py-2.5 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground bg-card/60">
+        <div className="px-4 py-2.5 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground bg-card/60 shrink-0">
           <div className="flex items-center gap-4 flex-wrap">
             <div>
               Showing <span className="text-foreground font-normal">{invoices.length}</span> of <span className="text-foreground font-normal">{totalCount}</span> invoices

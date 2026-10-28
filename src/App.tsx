@@ -18,6 +18,7 @@ import { LoginModal } from './components/auth/LoginModal';
 import { RegisterModal } from './components/auth/RegisterModal';
 import { SignedOutView } from './components/auth/SignedOutView';
 import { Toast } from './components/ui/Toast';
+import { cn } from './lib/utils';
 import { apiService } from './services/api';
 import { User, Organization, Role, AuthResponse } from './types/api';
 import { MOCK_USERS, MOCK_ORGANIZATIONS } from './services/mockData';
@@ -303,7 +304,7 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 w-full h-full overflow-hidden">
         {/* Topbar */}
         <Topbar
           organizations={organizations}
@@ -324,7 +325,10 @@ export const App: React.FC = () => {
         />
 
         {/* View Switcher */}
-        <main className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto overflow-x-hidden">
+        <main className={cn(
+          "flex-1 flex flex-col min-w-0 w-full",
+          currentTab === 'invoices' ? "h-full overflow-hidden" : "overflow-y-auto overflow-x-hidden"
+        )}>
           {!currentUser ? (
             <SignedOutView
               onOpenLogin={() => setIsLoginOpen(true)}
