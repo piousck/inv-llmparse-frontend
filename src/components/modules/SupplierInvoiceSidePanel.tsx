@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { SupplierInvoice, InvoiceDetail } from '../../types/api';
 import { apiService } from '../../services/api';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency, isCreditNoteDocument } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { InvoiceCanvas } from '../review/InvoiceCanvas';
@@ -134,11 +134,7 @@ export const SupplierInvoiceSidePanel: React.FC<SupplierInvoiceSidePanelProps> =
   const effectiveDetail = invoiceDetail || fallbackDetail;
   const lineItems = invoice.line_items || [];
 
-  const isCreditNote =
-    Number(invoice.total_gross) < 0 ||
-    Number(invoice.total_net) < 0 ||
-    Boolean(invoice.invoice_number && invoice.invoice_number.toLowerCase().includes('crn')) ||
-    Boolean(invoice.payment_method && String(invoice.payment_method).toLowerCase().includes('credit'));
+  const isCreditNote = isCreditNoteDocument(invoice as any);
 
   return (
     <>

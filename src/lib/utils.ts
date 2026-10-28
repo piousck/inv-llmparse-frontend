@@ -245,3 +245,65 @@ export function formatSupplierName(name: string | null | undefined): string {
   return trimmed.split(/\s+/).map(capitalizeWord).join(' ');
 }
 
+export interface CreditNoteCheckable {
+  total_gross?: number | string | null;
+  total_net?: number | string | null;
+  document_type?: string | null;
+  raw_document_type?: string | null;
+  is_credit_note?: boolean | null;
+  invoice_number?: string | null;
+}
+
+/**
+ * Robustly determines if an invoice/document represents a Credit Note.
+ *
+ * Criteria:
+ * 1. Explicit boolean flag (`is_credit_note === true`)
+ * 2. Explicit document type (`credit_note`, `credit note`, `credit_memo`, `credit memo`)
+ * 3. Explicit negative financial totals (`total_gross < 0` or `total_net < 0`)
+ * 4. Explicit credit note numbering prefix with required separator/pattern
+ *    (e.g., 'CR-123', 'CN-123', 'CRN-123', 'CRN123', 'CR_123', 'Credit Note 123')
+ *
+ * Note: Never infers credit note status from `payment_method` (e.g. paying by credit card).
+ */
+export function isCreditNoteDocument(doc?: CreditNoteCheckable | null): boolean {
+  if (!doc) return false;
+
+  // 1. Explicit boolean flag
+  if (doc.is_credit_note === true) return true;
+
+  // 2. Explicit document type
+  const docType = String(doc.document_type || doc.raw_document_type || '').trim().toLowerCase();
+  if (
+    docType === 'credit_note' ||
+    docType === 'credit note' ||
+    docType === 'credit_memo' ||
+    docType === 'credit memo' ||
+    docType === 'credit'
+  ) {
+    return true;
+  }
+
+  // 3. Explicit negative amount totals
+  const gross = doc.total_gross != null && doc.total_gross !== '' ? Number(doc.total_gross) : NaN;
+  const net = doc.total_net != null && doc.total_net !== '' ? Number(doc.total_net) : NaN;
+  if ((!isNaN(gross) && gross < 0) || (!isNaN(net) && net < 0)) {
+    return true;
+  }
+
+  // 4. Explicit credit note numbering patterns
+  const invNum = String(doc.invoice_number || '').trim();
+  if (invNum) {
+    // Matches CR-123, CN-123, CRN-123, CR_123, CR 123, CRN12345
+    if (/^(cr|cn)[-_\s]/i.test(invNum) || /^crn[-_\s0-9]/i.test(invNum)) {
+      return true;
+    }
+    if (/credit[-_\s]?(note|memo)/i.test(invNum)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+

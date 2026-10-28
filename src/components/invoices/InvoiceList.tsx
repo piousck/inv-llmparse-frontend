@@ -27,7 +27,7 @@ import { apiService } from '../../services/api';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
-import { formatCurrency, formatSupplierName, cn } from '../../lib/utils';
+import { formatCurrency, formatSupplierName, cn, isCreditNoteDocument } from '../../lib/utils';
 import { useDateFormat } from '../../lib/dateUtils';
 import { DocumentViewerModal } from './DocumentViewerModal';
 import { DocumentSubTab } from '../layout/Sidebar';
@@ -641,14 +641,13 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                     inv.total_net != null
                       ? Number(inv.total_net)
                       : Math.round((gross - vat) * 100) / 100;
-                  const isCreditNote = Boolean(
-                    gross < 0 ||
-                    net < 0 ||
-                    inv.document_type === 'credit_note' ||
-                    (inv as any)?.is_credit_note ||
-                    (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
-                    (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
-                  );
+                  const isCreditNote = isCreditNoteDocument({
+                    total_gross: gross,
+                    total_net: net,
+                    document_type: inv.document_type,
+                    is_credit_note: (inv as any)?.is_credit_note,
+                    invoice_number: inv.invoice_number,
+                  });
 
                   return (
                     <tr
@@ -987,28 +986,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
             {invoices.length > 0 && (() => {
               const subtotalGross = Math.round(invoices.reduce((sum, inv) => {
                 const g = Number(inv.total_gross || 0);
-                const isCR = Boolean(
-                  g < 0 ||
-                  Number(inv.total_net || 0) < 0 ||
-                  inv.document_type === 'credit_note' ||
-                  (inv as any)?.is_credit_note ||
-                  (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
-                  (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
-                );
+                const isCR = isCreditNoteDocument(inv as any);
                 return sum + (isCR ? -Math.abs(g) : g);
               }, 0) * 100) / 100;
 
               const subtotalVat = Math.round(invoices.reduce((sum, inv) => {
                 const g = Number(inv.total_gross || 0);
                 const v = inv.total_vat != null ? Number(inv.total_vat) : (inv.total_net != null ? Math.round((g - Number(inv.total_net)) * 100) / 100 : 0);
-                const isCR = Boolean(
-                  g < 0 ||
-                  Number(inv.total_net || 0) < 0 ||
-                  inv.document_type === 'credit_note' ||
-                  (inv as any)?.is_credit_note ||
-                  (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
-                  (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
-                );
+                const isCR = isCreditNoteDocument(inv as any);
                 return sum + (isCR ? -Math.abs(v) : v);
               }, 0) * 100) / 100;
 
@@ -1016,14 +1001,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                 const g = Number(inv.total_gross || 0);
                 const v = inv.total_vat != null ? Number(inv.total_vat) : (inv.total_net != null ? Math.round((g - Number(inv.total_net)) * 100) / 100 : 0);
                 const n = inv.total_net != null ? Number(inv.total_net) : Math.round((g - v) * 100) / 100;
-                const isCR = Boolean(
-                  g < 0 ||
-                  Number(inv.total_net || 0) < 0 ||
-                  inv.document_type === 'credit_note' ||
-                  (inv as any)?.is_credit_note ||
-                  (inv.invoice_number && /^(cr|cn|crn)/i.test(inv.invoice_number.trim())) ||
-                  (inv.invoice_number && /credit[-_\s]?note/i.test(inv.invoice_number))
-                );
+                const isCR = isCreditNoteDocument(inv as any);
                 return sum + (isCR ? -Math.abs(n) : n);
               }, 0) * 100) / 100;
 

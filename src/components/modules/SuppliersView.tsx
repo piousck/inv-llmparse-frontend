@@ -21,7 +21,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import { SupplierInvoiceSidePanel } from './SupplierInvoiceSidePanel';
-import { formatSupplierName } from '../../lib/utils';
+import { formatSupplierName, isCreditNoteDocument } from '../../lib/utils';
 import { useDateFormat } from '../../lib/dateUtils';
 
 interface SuppliersViewProps {
@@ -251,13 +251,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
       .map((item) => {
         if (item.type === 'invoice' && item.invoice) {
           const gross = Number(item.invoice.total_gross) || 0;
-          const net = Number(item.invoice.total_net) || 0;
-          const isCredit = Boolean(
-            gross < 0 ||
-            net < 0 ||
-            (item.invoice.invoice_number && item.invoice.invoice_number.toLowerCase().includes('crn')) ||
-            (item.invoice.payment_method && String(item.invoice.payment_method).toLowerCase().includes('credit'))
-          );
+          const isCredit = isCreditNoteDocument(item.invoice as any);
           running += gross;
           const isApproved = !item.invoice.requires_human_review;
           const refNumber = item.invoice.invoice_number;

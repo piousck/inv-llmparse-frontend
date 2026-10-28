@@ -29,7 +29,7 @@ import { LineItemsTable } from './LineItemsTable';
 import { Section60Banner } from './Section60Banner';
 import { LineItemInspector } from './LineItemInspector';
 import { NonIrishPurchaseBanner } from './NonIrishPurchaseBanner';
-import { isNonIrishPurchase, formatCurrency, formatSupplierName, cn } from '../../lib/utils';
+import { isNonIrishPurchase, formatCurrency, formatSupplierName, cn, isCreditNoteDocument } from '../../lib/utils';
 import { formatAppDate } from '../../lib/dateUtils';
 
 interface ReviewHubProps {
@@ -305,14 +305,7 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
 
   // Non-Irish purchase detection & Claimed VAT
   const isForeignPurchase = isNonIrishPurchase(invoice);
-  const isCreditNote = Boolean(
-    (invoice?.total_gross !== undefined && invoice.total_gross < 0) ||
-    (invoice?.total_net !== undefined && invoice.total_net < 0) ||
-    (invoice?.invoice_number && /^(cr|cn|crn)/i.test(invoice.invoice_number.trim())) ||
-    (invoice?.invoice_number && /credit[-_\s]?note/i.test(invoice.invoice_number)) ||
-    (invoice as any)?.document_type === 'credit_note' ||
-    (invoice as any)?.is_credit_note
-  );
+  const isCreditNote = isCreditNoteDocument(invoice as any);
   const claimableVat = isForeignPurchase
     ? 0
     : invoice.line_items
