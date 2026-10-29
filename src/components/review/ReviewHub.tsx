@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
   CheckCircle,
@@ -944,56 +945,62 @@ export const ReviewHub: React.FC<ReviewHubProps> = ({
               <MoreVertical className="w-3.5 h-3.5" />
             </Button>
 
-            {isMoreMenuOpen && (
-              <div
-                className="absolute right-0 mt-1 w-44 rounded-lg bg-card border border-border shadow-lg p-1 z-30 animate-in fade-in zoom-in-95 duration-100 text-xs"
-                onClick={() => setIsMoreMenuOpen(false)}
-              >
-                <button
-                  type="button"
-                  disabled={isReocring || isPeriodLocked}
-                  onClick={() => {
-                    setIsMoreMenuOpen(false);
-                    handleReocr();
-                  }}
-                  className="w-full text-left px-2 py-1.5 rounded text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 flex items-center gap-2 font-medium cursor-pointer disabled:opacity-50"
-                  title="Re-run multimodal vision OCR extraction"
+            <AnimatePresence>
+              {isMoreMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                  transition={{ duration: 0.12, ease: 'easeOut' }}
+                  className="absolute right-0 mt-1 w-44 rounded-lg bg-card border border-border shadow-lg p-1 z-30 text-xs"
+                  onClick={() => setIsMoreMenuOpen(false)}
                 >
-                  <RefreshCw className={cn("w-3.5 h-3.5", isReocring && "animate-spin")} />
-                  <span>{isReocring ? 'Re-extracting...' : 'Re-run OCR'}</span>
-                </button>
+                  <button
+                    type="button"
+                    disabled={isReocring || isPeriodLocked}
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      handleReocr();
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 flex items-center gap-2 font-medium cursor-pointer disabled:opacity-50"
+                    title="Re-run multimodal vision OCR extraction"
+                  >
+                    <RefreshCw className={cn("w-3.5 h-3.5", isReocring && "animate-spin")} />
+                    <span>{isReocring ? 'Re-extracting...' : 'Re-run OCR'}</span>
+                  </button>
 
-                <button
-                  type="button"
-                  disabled={isLocked}
-                  onClick={() => {
-                    setIsMoreMenuOpen(false);
-                    handleAutoReconcileVat();
-                  }}
-                  className="w-full text-left px-2 py-1.5 rounded text-foreground hover:bg-muted flex items-center gap-2 font-medium cursor-pointer disabled:opacity-50"
-                  title="Auto-reconcile line item VAT to invoice total"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
-                  <span>Auto-Reconcile VAT</span>
-                </button>
+                  <button
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      handleAutoReconcileVat();
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded text-foreground hover:bg-muted flex items-center gap-2 font-medium cursor-pointer disabled:opacity-50"
+                    title="Auto-reconcile line item VAT to invoice total"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    <span>Auto-Reconcile VAT</span>
+                  </button>
 
-                <div className="my-1 border-t border-border" />
+                  <div className="my-1 border-t border-border" />
 
-                <button
-                  type="button"
-                  disabled={isDeleting || isPeriodLocked}
-                  onClick={() => {
-                    setIsMoreMenuOpen(false);
-                    setIsDeleteOpen(true);
-                  }}
-                  className="w-full text-left px-2 py-1.5 rounded text-destructive hover:bg-destructive/10 flex items-center gap-2 font-medium cursor-pointer disabled:opacity-50"
-                  title="Delete invoice"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Delete Invoice</span>
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    disabled={isDeleting || isPeriodLocked}
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      setIsDeleteOpen(true);
+                    }}
+                    className="w-full text-left px-2 py-1.5 rounded text-destructive hover:bg-destructive/10 flex items-center gap-2 font-medium cursor-pointer disabled:opacity-50"
+                    title="Delete invoice"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Invoice</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Save Draft */}

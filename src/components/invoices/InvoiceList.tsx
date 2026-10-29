@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'motion/react';
 import {
   Search,
   Upload,
@@ -353,57 +354,41 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     <div className="flex-1 h-full min-h-0 p-3 sm:p-4 md:p-5 flex flex-col bg-background min-w-0 w-full max-w-full overflow-hidden">
       {/* Top Document Category Switcher */}
       <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs mb-3.5 shrink-0 overflow-x-auto">
-        <button
-          onClick={() => onSelectDocumentSubTab?.('purchases')}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
-            documentSubTab === 'purchases'
-              ? "bg-primary text-primary-foreground shadow-xs font-bold"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <Inbox className="w-3.5 h-3.5" />
-          <span>Purchases</span>
-        </button>
-
-        <button
-          onClick={() => onSelectDocumentSubTab?.('bank_statements')}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
-            documentSubTab === 'bank_statements'
-              ? "bg-primary text-primary-foreground shadow-xs font-bold"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <Landmark className="w-3.5 h-3.5" />
-          <span>Bank Statements</span>
-        </button>
-
-        <button
-          onClick={() => onSelectDocumentSubTab?.('supplier_statements')}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
-            documentSubTab === 'supplier_statements'
-              ? "bg-primary text-primary-foreground shadow-xs font-bold"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>Supplier Statements</span>
-        </button>
-
-        <button
-          onClick={() => onSelectDocumentSubTab?.('other_documents')}
-          className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
-            documentSubTab === 'other_documents'
-              ? "bg-primary text-primary-foreground shadow-xs font-bold"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          <FolderKanban className="w-3.5 h-3.5" />
-          <span>Other Documents</span>
-        </button>
+        {(
+          [
+            { id: 'purchases', label: 'Purchases', icon: Inbox },
+            { id: 'bank_statements', label: 'Bank Statements', icon: Landmark },
+            { id: 'supplier_statements', label: 'Supplier Statements', icon: FileSpreadsheet },
+            { id: 'other_documents', label: 'Other Documents', icon: FolderKanban },
+          ] as const
+        ).map((cat) => {
+          const Icon = cat.icon;
+          const isActive = documentSubTab === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelectDocumentSubTab?.(cat.id)}
+              className={cn(
+                "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
+                isActive
+                  ? "text-primary-foreground font-bold"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+              )}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeDocCategoryTab"
+                  className="absolute inset-0 bg-primary rounded-lg shadow-xs"
+                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <Icon className="w-3.5 h-3.5" />
+                <span>{cat.label}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Page Header */}
@@ -459,22 +444,33 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
       <div className="bg-card rounded-xl border border-border shadow-xs p-2 sm:p-2.5 mb-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2 min-w-0 w-full shrink-0">
         {/* Status Tabs */}
         <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg overflow-x-auto max-w-full scrollbar-none min-w-0">
-          {statusTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setStatusFilter(tab.id);
-                setPage(1);
-              }}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
-                statusFilter === tab.id
-                  ? 'bg-card text-foreground font-bold shadow-2xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {statusTabs.map((tab) => {
+            const isActive = statusFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setStatusFilter(tab.id);
+                  setPage(1);
+                }}
+                className={cn(
+                  "relative px-2.5 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 select-none",
+                  isActive
+                    ? "text-foreground font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeStatusFilterPill"
+                    className="absolute inset-0 bg-card rounded-md shadow-2xs border border-border/80"
+                    transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Search Box */}
@@ -650,8 +646,11 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                   });
 
                   return (
-                    <tr
+                    <motion.tr
                       key={rowId}
+                      initial={{ opacity: 0, y: 2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15 }}
                       onClick={() => {
                         if (inv.invoice_id && documentSubTab === 'purchases') {
                           onSelectInvoice(
@@ -976,7 +975,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                           </div>
                         )}
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })
               )}

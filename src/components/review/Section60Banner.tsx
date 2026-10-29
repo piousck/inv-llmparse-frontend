@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle, ShoppingCart, CheckCircle2, Users, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
 
@@ -109,13 +110,21 @@ export const Section60Banner: React.FC<Section60BannerProps> = ({
               <Info className="w-4 h-4" />
             </button>
           </div>
-          {showDetails && (
-            <p className="text-xs text-amber-800/90 dark:text-amber-300/90 mt-1 leading-relaxed max-w-2xl animate-in fade-in duration-150">
-              {isForeignPurchase
-                ? `${itemCount} line item${itemCount > 1 ? 's are' : ' is'} from a non-domestic supplier. Under Section 59/60 VATCA 2010, foreign VAT cannot be claimed on your domestic VAT3 return. You may reclassify lines to Staff Entertainment (413) or Stock for Resale (300) for GL/CT reporting, but Claimed VAT remains 0.00.`
-                : `${itemCount} line item${itemCount > 1 ? 's are' : ' is'} classified as Food, Drink or Entertainment. Input VAT is legally blocked (TN) unless incurred for staff entertainment or acquired as stock for resale.`}
-            </p>
-          )}
+          <AnimatePresence>
+            {showDetails && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="overflow-hidden text-xs text-amber-800/90 dark:text-amber-300/90 mt-1 leading-relaxed max-w-2xl"
+              >
+                {isForeignPurchase
+                  ? `${itemCount} line item${itemCount > 1 ? 's are' : ' is'} from a non-domestic supplier. Under Section 59/60 VATCA 2010, foreign VAT cannot be claimed on your domestic VAT3 return. You may reclassify lines to Staff Entertainment (413) or Stock for Resale (300) for GL/CT reporting, but Claimed VAT remains 0.00.`
+                  : `${itemCount} line item${itemCount > 1 ? 's are' : ' is'} classified as Food, Drink or Entertainment. Input VAT is legally blocked (TN) unless incurred for staff entertainment or acquired as stock for resale.`}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

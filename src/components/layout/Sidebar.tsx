@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Inbox,
   LayoutDashboard,
@@ -325,56 +326,64 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
 
                 {/* Sub-items for Documents & Financial statements */}
-                {hasSubItems && isSubOpen && (
-                  <div className="ml-5 pl-2 border-l border-sidebar-border/70 flex flex-col gap-0.5 mt-0.5 mb-1">
-                    {item.subItems?.map((sub) => {
-                      const SubIcon = sub.icon;
-                      const isSubActive =
-                        item.id === 'invoices'
-                          ? (sub.id === 'bank_statements' && currentTab === 'bank') ||
-                            (currentTab === 'invoices' && activeDocumentSubTab === sub.id)
-                          : isItemActive && activeFinancialSubTab === sub.id;
-                      return (
-                        <button
-                          key={sub.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!currentUser && onOpenAuth) {
-                              onOpenAuth('login');
-                              return;
-                            }
-                            if (item.id === 'invoices') {
-                              if (sub.id === 'bank_statements') {
-                                onSelectTab('bank');
-                                onSelectDocumentSubTab?.('bank_statements');
-                              } else {
-                                onSelectTab('invoices');
-                                onSelectDocumentSubTab?.(sub.id as DocumentSubTab);
+                <AnimatePresence initial={false}>
+                  {hasSubItems && isSubOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.18, ease: 'easeOut' }}
+                      className="overflow-hidden ml-5 pl-2 border-l border-sidebar-border/70 flex flex-col gap-0.5 mt-0.5 mb-1"
+                    >
+                      {item.subItems?.map((sub) => {
+                        const SubIcon = sub.icon;
+                        const isSubActive =
+                          item.id === 'invoices'
+                            ? (sub.id === 'bank_statements' && currentTab === 'bank') ||
+                              (currentTab === 'invoices' && activeDocumentSubTab === sub.id)
+                            : isItemActive && activeFinancialSubTab === sub.id;
+                        return (
+                          <button
+                            key={sub.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!currentUser && onOpenAuth) {
+                                onOpenAuth('login');
+                                return;
                               }
-                            } else {
-                              onSelectTab('financials');
-                              onSelectFinancialSubTab?.(sub.id as FinancialSubTab);
-                            }
-                          }}
-                          className={cn(
-                            'flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors text-left w-full cursor-pointer',
-                            isSubActive
-                              ? 'bg-primary/15 text-primary font-bold shadow-2xs'
-                              : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                          )}
-                        >
-                          <SubIcon
+                              if (item.id === 'invoices') {
+                                if (sub.id === 'bank_statements') {
+                                  onSelectTab('bank');
+                                  onSelectDocumentSubTab?.('bank_statements');
+                                } else {
+                                  onSelectTab('invoices');
+                                  onSelectDocumentSubTab?.(sub.id as DocumentSubTab);
+                                }
+                              } else {
+                                onSelectTab('financials');
+                                onSelectFinancialSubTab?.(sub.id as FinancialSubTab);
+                              }
+                            }}
                             className={cn(
-                              'size-3.5 shrink-0',
-                              isSubActive ? 'text-primary' : 'text-muted-foreground'
+                              'flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors text-left w-full cursor-pointer',
+                              isSubActive
+                                ? 'bg-primary/15 text-primary font-bold shadow-2xs'
+                                : 'text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                             )}
-                          />
-                          <span className="truncate">{sub.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                          >
+                            <SubIcon
+                              className={cn(
+                                'size-3.5 shrink-0',
+                                isSubActive ? 'text-primary' : 'text-muted-foreground'
+                              )}
+                            />
+                            <span className="truncate">{sub.label}</span>
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}

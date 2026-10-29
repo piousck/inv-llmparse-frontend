@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import {
   X,
   Edit2,
@@ -139,15 +140,23 @@ export const SupplierInvoiceSidePanel: React.FC<SupplierInvoiceSidePanelProps> =
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-2xs z-40 transition-opacity"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className="fixed inset-0 bg-black/45 backdrop-blur-xs z-40"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Side Panel Drawer */}
-      <aside
-        className="fixed inset-y-0 right-0 z-50 w-full sm:w-[600px] md:w-[700px] lg:w-[780px] xl:w-[860px] bg-background border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
+      <motion.aside
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        className="fixed inset-y-0 right-0 z-50 w-full sm:w-[600px] md:w-[700px] lg:w-[780px] xl:w-[860px] bg-background border-l border-border shadow-2xl flex flex-col"
         role="dialog"
         aria-label={`${isCreditNote ? 'Credit Note' : 'Invoice'} ${invoice.invoice_number || invoice.id}`}
       >
@@ -463,7 +472,7 @@ export const SupplierInvoiceSidePanel: React.FC<SupplierInvoiceSidePanelProps> =
             </Button>
           </div>
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import {
   Trash2,
   Plus,
@@ -367,14 +368,17 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
             item.vat_rate > 0;
 
           return (
-            <div
+            <motion.div
               key={item.id || idx}
+              initial={{ opacity: 0, y: 2 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={() => {
                 if (isDocExpanded && onRestoreNormalWidth) onRestoreNormalWidth();
                 onSelectIndex(idx);
               }}
               className={cn(
-                "px-3 py-1.5 transition-all cursor-pointer group flex flex-col gap-1",
+                "px-3 py-1.5 transition-colors cursor-pointer group flex flex-col gap-1 rounded-lg",
                 isSelected
                   ? "bg-sky-50/70 dark:bg-sky-950/25 ring-1 ring-sky-300 dark:ring-sky-700/60 shadow-2xs"
                   : "hover:bg-muted/25"
@@ -736,7 +740,7 @@ export const LineItemsTable: React.FC<LineItemsTableProps> = ({
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>

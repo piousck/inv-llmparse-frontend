@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { AnimatePresence } from 'motion/react';
 import {
   Building2,
   Search,
@@ -902,19 +903,21 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         )}
 
         {/* Supplier Invoice Right-Hand Side Panel Preview */}
-        {previewInvoice && (
-          <SupplierInvoiceSidePanel
-            invoice={previewInvoice}
-            supplierName={formatSupplierName(sup?.canonical_name)}
-            onClose={() => setPreviewInvoice(null)}
-            onEdit={(invId) => {
-              setPreviewInvoice(null);
-              if (onSelectInvoice) {
-                onSelectInvoice(invId);
-              }
-            }}
-          />
-        )}
+        <AnimatePresence>
+          {previewInvoice && (
+            <SupplierInvoiceSidePanel
+              invoice={previewInvoice}
+              supplierName={formatSupplierName(sup?.canonical_name)}
+              onClose={() => setPreviewInvoice(null)}
+              onEdit={(invId) => {
+                setPreviewInvoice(null);
+                if (onSelectInvoice) {
+                  onSelectInvoice(invId);
+                }
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
     );
   }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Globe, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { formatCurrency } from '../../lib/utils';
@@ -49,14 +50,22 @@ export const NonIrishPurchaseBanner: React.FC<NonIrishPurchaseBannerProps> = ({
               TN · Non-Deductible
             </span>
           </div>
-          {showDetails && (
-            <p className="text-muted-foreground leading-relaxed text-xs max-w-2xl mt-1 animate-in fade-in duration-150">
-              Supplier <strong className="text-foreground font-semibold">{sellerName || 'Foreign Supplier'}</strong>
-              {sellerVat ? <> (VAT: <span className="font-mono text-foreground font-semibold">{sellerVat}</span>)</> : ''} is registered outside Ireland.
-              Under <strong>Irish VAT Consolidation Act 2010 (Sections 59 & 60)</strong>, foreign input VAT charged by non-Irish suppliers <strong>cannot be claimed on an Irish VAT3 return</strong>.
-              This invoice is coded as <strong>TN</strong> (Excluded from Irish RTD) with <strong>€0.00 Claimed VAT</strong>.
-            </p>
-          )}
+          <AnimatePresence>
+            {showDetails && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="overflow-hidden text-muted-foreground leading-relaxed text-xs max-w-2xl mt-1"
+              >
+                Supplier <strong className="text-foreground font-semibold">{sellerName || 'Foreign Supplier'}</strong>
+                {sellerVat ? <> (VAT: <span className="font-mono text-foreground font-semibold">{sellerVat}</span>)</> : ''} is registered outside Ireland.
+                Under <strong>Irish VAT Consolidation Act 2010 (Sections 59 & 60)</strong>, foreign input VAT charged by non-Irish suppliers <strong>cannot be claimed on an Irish VAT3 return</strong>.
+                This invoice is coded as <strong>TN</strong> (Excluded from Irish RTD) with <strong>€0.00 Claimed VAT</strong>.
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'motion/react';
 import { LineItem, XERO_ACCOUNT_CODES, IRISH_VAT_RATES, OrganizationGLAccount } from '../../types/api';
 import { Badge } from '../ui/Badge';
 import { formatCurrency } from '../../lib/utils';
@@ -77,11 +78,14 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
   // --- Collapsed State (Minimised Bar filling top to bottom) ---
   if (!isExpanded) {
     return (
-      <aside
+      <motion.aside
         ref={inspectorRef}
+        layout="position"
+        initial={{ opacity: 0.8 }}
+        animate={{ opacity: 1 }}
         style={style}
         onClick={handleToggle}
-        className="w-12 h-full min-h-0 self-stretch bg-card hover:bg-muted/40 border border-border rounded-xl shadow-xs py-3.5 px-1 flex flex-col items-center cursor-pointer transition-all duration-200 group select-none shrink-0"
+        className="w-12 h-full min-h-0 self-stretch bg-card hover:bg-muted/40 border border-border rounded-xl shadow-xs py-3.5 px-1 flex flex-col items-center cursor-pointer transition-colors duration-200 group select-none shrink-0"
         title="Expand Line Item Inspector (Click to expand)"
       >
         <button
@@ -117,7 +121,7 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
             </span>
           </div>
         )}
-      </aside>
+      </motion.aside>
     );
   }
 
@@ -406,10 +410,14 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
   };
 
   return (
-    <aside
+    <motion.aside
       ref={inspectorRef}
+      layout="position"
+      initial={{ opacity: 0.85, x: 6 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ type: 'spring', damping: 28, stiffness: 320 }}
       style={style}
-      className="w-80 lg:w-84 xl:w-92 h-full min-h-0 self-stretch bg-card rounded-xl border border-border shadow-xs flex flex-col shrink-0 overflow-hidden transition-all duration-200"
+      className="w-80 lg:w-84 xl:w-92 h-full min-h-0 self-stretch bg-card rounded-xl border border-border shadow-xs flex flex-col shrink-0 overflow-hidden"
     >
       {/* Header with Title, Line Index, Confidence Badge & Collapse Button */}
       <div className="px-3.5 py-2.5 border-b border-border bg-card/60 flex items-center justify-between gap-2 shrink-0">
@@ -813,6 +821,6 @@ export const LineItemInspector: React.FC<LineItemInspectorProps> = ({
           </div>
         </div>
       )}
-    </aside>
+    </motion.aside>
   );
 };
