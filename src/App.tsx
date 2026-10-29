@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { Inbox, Landmark, FileSpreadsheet, FolderKanban } from 'lucide-react';
 import { Sidebar, NavTab, FinancialSubTab, DocumentSubTab } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
 import { InvoiceList } from './components/invoices/InvoiceList';
@@ -327,7 +329,7 @@ export const App: React.FC = () => {
         {/* View Switcher */}
         <main className={cn(
           "flex-1 flex flex-col min-w-0 w-full",
-          currentTab === 'invoices' ? "h-full overflow-hidden" : "overflow-y-auto overflow-x-hidden"
+          (currentTab === 'invoices' || currentTab === 'bank') ? "h-full overflow-hidden" : "overflow-y-auto overflow-x-hidden"
         )}>
           {!currentUser ? (
             <SignedOutView
@@ -339,30 +341,85 @@ export const App: React.FC = () => {
             />
           ) : (
             <>
-              {currentTab === 'invoices' && (
-                <>
-                  {activeInvoiceId ? (
-                    <ReviewHub
-                      invoiceId={activeInvoiceId}
-                      activeOrgId={activeOrgId}
-                      invoiceIds={invoiceIdsList}
-                      onNavigateInvoice={(nextId) => setActiveInvoiceId(nextId)}
-                      onBack={handleBackToInvoices}
-                      onShowToast={showToast}
-                    />
-                  ) : (
-                    <InvoiceList
-                      activeOrgId={activeOrgId}
-                      currentUser={currentUser}
-                      refreshKey={invoicesRefreshKey}
-                      onSelectInvoice={handleOpenReview}
-                      onOpenUpload={(type) => handleOpenUpload(type || 'invoice')}
-                      onShowToast={showToast}
-                      documentSubTab={documentSubTab}
-                      onSelectDocumentSubTab={handleSelectDocumentSubTab}
-                    />
-                  )}
-                </>
+              {/* Document Section: Purchases, Bank Statements, Supplier Statements, Other Documents */}
+              {(currentTab === 'invoices' || currentTab === 'bank') && (
+                activeInvoiceId ? (
+                  <ReviewHub
+                    invoiceId={activeInvoiceId}
+                    activeOrgId={activeOrgId}
+                    invoiceIds={invoiceIdsList}
+                    onNavigateInvoice={(nextId) => setActiveInvoiceId(nextId)}
+                    onBack={handleBackToInvoices}
+                    onShowToast={showToast}
+                  />
+                ) : (
+                  <div className="flex-1 h-full min-h-0 p-3 sm:p-4 md:p-5 flex flex-col bg-background min-w-0 w-full max-w-full overflow-hidden">
+                    {/* Top Document Category Switcher (Persistent across all 4 document sub-tabs) */}
+                    <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs mb-3.5 shrink-0 overflow-x-auto">
+                      {(
+                        [
+                          { id: 'purchases', label: 'Purchases', icon: Inbox },
+                          { id: 'bank_statements', label: 'Bank Statements', icon: Landmark },
+                          { id: 'supplier_statements', label: 'Supplier Statements', icon: FileSpreadsheet },
+                          { id: 'other_documents', label: 'Other Documents', icon: FolderKanban },
+                        ] as const
+                      ).map((cat) => {
+                        const Icon = cat.icon;
+                        const isActive = documentSubTab === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => handleSelectDocumentSubTab(cat.id)}
+                            className={cn(
+                              "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
+                              isActive
+                                ? "text-primary-foreground font-bold"
+                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                            )}
+                          >
+                            {isActive && (
+                              <motion.div
+                                layoutId="activeDocCategoryTab"
+                                className="absolute inset-0 bg-primary rounded-lg shadow-xs"
+                                transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                              />
+                            )}
+                            <span className="relative z-10 flex items-center gap-2">
+                              <Icon className="w-3.5 h-3.5" />
+                              <span>{cat.label}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Active Document Sub-View */}
+                    <div className="flex-1 min-h-0 w-full overflow-hidden flex flex-col">
+                      {documentSubTab === 'bank_statements' || currentTab === 'bank' ? (
+                        <BankReconciliationView
+                          activeOrgId={activeOrgId}
+                          refreshKey={bankRefreshKey}
+                          onOpenUpload={(type) => handleOpenUpload(type || 'bank_statement')}
+                          onShowToast={showToast}
+                          onSelectDocumentSubTab={handleSelectDocumentSubTab}
+                          hideCategorySwitcher
+                        />
+                      ) : (
+                        <InvoiceList
+                          activeOrgId={activeOrgId}
+                          currentUser={currentUser}
+                          refreshKey={invoicesRefreshKey}
+                          onSelectInvoice={handleOpenReview}
+                          onOpenUpload={(type) => handleOpenUpload(type || 'invoice')}
+                          onShowToast={showToast}
+                          documentSubTab={documentSubTab}
+                          onSelectDocumentSubTab={handleSelectDocumentSubTab}
+                          hideCategorySwitcher
+                        />
+                      )}
+                    </div>
+                  </div>
+                )
               )}
 
               {currentTab === 'dashboard' && <DashboardView onSelectInvoice={handleOpenReview} />}
@@ -374,15 +431,6 @@ export const App: React.FC = () => {
                 />
               )}
               {currentTab === 'sales' && <SalesView onShowToast={showToast} />}
-              {currentTab === 'bank' && (
-                <BankReconciliationView
-                  activeOrgId={activeOrgId}
-                  refreshKey={bankRefreshKey}
-                  onOpenUpload={(type) => handleOpenUpload(type || 'bank_statement')}
-                  onShowToast={showToast}
-                  onSelectDocumentSubTab={handleSelectDocumentSubTab}
-                />
-              )}
               {currentTab === 'financials' && (
                 <FinancialStatementsView
                   activeOrgId={activeOrgId}

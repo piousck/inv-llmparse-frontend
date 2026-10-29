@@ -42,6 +42,7 @@ interface InvoiceListProps {
   onShowToast: (msg: string) => void;
   documentSubTab?: DocumentSubTab;
   onSelectDocumentSubTab?: (subTab: DocumentSubTab) => void;
+  hideCategorySwitcher?: boolean;
 }
 
 export const InvoiceList: React.FC<InvoiceListProps> = ({
@@ -53,6 +54,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   onShowToast,
   documentSubTab = 'purchases',
   onSelectDocumentSubTab,
+  hideCategorySwitcher = false,
 }) => {
   const { formatDate } = useDateFormat();
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
@@ -351,45 +353,52 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
   }, [documentSubTab]);
 
   return (
-    <div className="flex-1 h-full min-h-0 p-3 sm:p-4 md:p-5 flex flex-col bg-background min-w-0 w-full max-w-full overflow-hidden">
-      {/* Top Document Category Switcher */}
-      <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs mb-3.5 shrink-0 overflow-x-auto">
-        {(
-          [
-            { id: 'purchases', label: 'Purchases', icon: Inbox },
-            { id: 'bank_statements', label: 'Bank Statements', icon: Landmark },
-            { id: 'supplier_statements', label: 'Supplier Statements', icon: FileSpreadsheet },
-            { id: 'other_documents', label: 'Other Documents', icon: FolderKanban },
-          ] as const
-        ).map((cat) => {
-          const Icon = cat.icon;
-          const isActive = documentSubTab === cat.id;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => onSelectDocumentSubTab?.(cat.id)}
-              className={cn(
-                "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
-                isActive
-                  ? "text-primary-foreground font-bold"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-              )}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="activeDocCategoryTab"
-                  className="absolute inset-0 bg-primary rounded-lg shadow-xs"
-                  transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                <Icon className="w-3.5 h-3.5" />
-                <span>{cat.label}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
+    <div
+      className={cn(
+        "flex-1 h-full min-h-0 flex flex-col bg-background min-w-0 w-full max-w-full overflow-hidden",
+        !hideCategorySwitcher && "p-3 sm:p-4 md:p-5"
+      )}
+    >
+      {/* Top Document Category Switcher (when used standalone) */}
+      {!hideCategorySwitcher && (
+        <div className="flex items-center gap-1.5 p-1 bg-card rounded-xl border border-border shadow-xs mb-3.5 shrink-0 overflow-x-auto">
+          {(
+            [
+              { id: 'purchases', label: 'Purchases', icon: Inbox },
+              { id: 'bank_statements', label: 'Bank Statements', icon: Landmark },
+              { id: 'supplier_statements', label: 'Supplier Statements', icon: FileSpreadsheet },
+              { id: 'other_documents', label: 'Other Documents', icon: FolderKanban },
+            ] as const
+          ).map((cat) => {
+            const Icon = cat.icon;
+            const isActive = documentSubTab === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectDocumentSubTab?.(cat.id)}
+                className={cn(
+                  "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap select-none",
+                  isActive
+                    ? "text-primary-foreground font-bold"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeDocCategoryTab"
+                    className="absolute inset-0 bg-primary rounded-lg shadow-xs"
+                    transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-2">
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{cat.label}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Page Header */}
       <div className="flex items-center justify-between gap-3 mb-3.5 min-w-0 w-full shrink-0">
