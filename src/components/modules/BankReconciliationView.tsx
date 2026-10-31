@@ -365,6 +365,11 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
     const isFailed = stmt.status === 'reconcile_failed';
     const stmtDiscrepancy = stmt.reconciliation_details?.discrepancy ?? 0;
 
+    const dateLabel =
+      stmt.period_start && stmt.period_end
+        ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
+        : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`;
+
     return (
       <button
         key={stmt.id}
@@ -379,21 +384,30 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
             ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40 text-foreground"
             : "border-border bg-card hover:bg-muted/40 hover:border-border/80 text-card-foreground"
         )}
+        title={`${dateLabel} • ${stmt.source_filename} • ${stmt.transaction_count} txns`}
       >
-        {/* Top: Statement Date Period & Status Badge */}
+        {/* Top: Statement Date Period */}
         <div className="flex items-center justify-between gap-1.5">
           <span
             className="text-xs font-bold truncate text-foreground min-w-0 flex-1"
-            title={
-              stmt.period_start && stmt.period_end
-                ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
-                : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`
-            }
+            title={dateLabel}
           >
-            {stmt.period_start && stmt.period_end
-              ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
-              : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`}
+            {dateLabel}
           </span>
+        </div>
+
+        {/* Bottom: File icon + File name & Status Badge */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1 border-t border-border/40 gap-1.5 font-sans">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            {getFileIcon(stmt.source_filename)}
+            <span
+              className="truncate font-medium text-muted-foreground hover:text-foreground transition-colors"
+              title={stmt.source_filename}
+            >
+              {stmt.source_filename}
+            </span>
+          </div>
+
           {isReconciled ? (
             <Badge variant="success" className="text-[9px] px-1.5 py-0 h-4 shrink-0 font-bold gap-0.5">
               <CheckCircle2 className="w-2.5 h-2.5" />
@@ -410,24 +424,6 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
               {stmt.status}
             </Badge>
           )}
-        </div>
-
-        {/* Bottom: File icon + File name & Txn count */}
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1 border-t border-border/40 gap-1.5 font-sans">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            {getFileIcon(stmt.source_filename)}
-            <span
-              className="truncate font-medium text-muted-foreground"
-              title={stmt.source_filename}
-            >
-              {stmt.source_filename}
-            </span>
-          </div>
-          <div className="flex items-center gap-1 shrink-0 font-mono">
-            <span className="font-medium text-muted-foreground">
-              {stmt.transaction_count} txns
-            </span>
-          </div>
         </div>
 
         {stmtDiscrepancy > 0.01 && (
