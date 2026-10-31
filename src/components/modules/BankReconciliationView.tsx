@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Landmark,
   CheckCircle2,
@@ -20,6 +20,10 @@ import {
   Inbox,
   FileSpreadsheet,
   FolderKanban,
+  Image as ImageIcon,
+  GalleryHorizontal,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -72,6 +76,48 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 30;
+
+  // Statement layout modes: 'strip' (horizontal ribbon, space-efficient default) or 'sidebar' (collapsible side panel)
+  const [statementLayoutMode, setStatementLayoutModeState] = useState<'strip' | 'sidebar'>(() => {
+    try {
+      return (localStorage.getItem('invparse_bank_stmt_layout') as 'strip' | 'sidebar') || 'strip';
+    } catch {
+      return 'strip';
+    }
+  });
+
+  const setStatementLayoutMode = (mode: 'strip' | 'sidebar') => {
+    setStatementLayoutModeState(mode);
+    try {
+      localStorage.setItem('invparse_bank_stmt_layout', mode);
+    } catch {}
+  };
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  const statementScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollStatements = (dir: 'left' | 'right') => {
+    if (!statementScrollRef.current) return;
+    const scrollAmt = 260;
+    statementScrollRef.current.scrollBy({
+      left: dir === 'left' ? -scrollAmt : scrollAmt,
+      behavior: 'smooth',
+    });
+  };
+
+  const getFileIcon = (filename: string) => {
+    const lower = filename.toLowerCase();
+    if (lower.match(/\.(jpe?g|png|webp|gif|svg)$/)) {
+      return <ImageIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />;
+    }
+    if (lower.endsWith('.pdf')) {
+      return <FileText className="w-3.5 h-3.5 text-rose-500 shrink-0" />;
+    }
+    if (lower.match(/\.(xlsx?|csv|tsv)$/)) {
+      return <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500 shrink-0" />;
+    }
+    return <FileText className="w-3.5 h-3.5 text-primary shrink-0" />;
+  };
 
   const parseDateTimestamp = (dStr: string | null | undefined): number => {
     if (!dStr) return 0;
@@ -313,6 +359,311 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
     [transactions]
   );
 
+  const renderStatementChip = (stmt: BankStatementDto, layout: 'strip' | 'sidebar' = 'strip') => {
+    const isSelected = stmt.id === selectedStatementId;
+    const isReconciled = stmt.status === 'reconciled';
+    const isFailed = stmt.status === 'reconcile_failed';
+    const stmtDiscrepancy = stmt.reconciliation_details?.discrepancy ?? 0;
+
+    return (
+      <button
+        key={stmt.id}
+        type="button"
+        onClick={() => setSelectedStatementId(stmt.id)}
+        className={cn(
+          "rounded-lg border text-left transition-all cursor-pointer relative select-none",
+          layout === 'strip'
+            ? "w-[215px] sm:w-[235px] shrink-0 p-2.5"
+            : "w-full p-2.5",
+          isSelected
+            ? "border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40 text-foreground"
+            : "border-border bg-card hover:bg-muted/40 hover:border-border/80 text-card-foreground"
+        )}
+      >
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            {getFileIcon(stmt.source_filename)}
+            <span
+              className="text-xs font-bold truncate text-foreground"
+              title={stmt.source_filename}
+            >
+              {stmt.source_filename}
+            </span>
+          </div>
+          {isReconciled ? (
+            <Badge variant="success" className="text-[9px] px-1.5 py-0 h-4 shrink-0 font-bold gap-0.5">
+              <CheckCircle2 className="w-2.5 h-2.5" />
+              Balanced
+            </Badge>
+          ) : isFailed || stmtDiscrepancy > 0.01 ? (
+            <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-4 shrink-0 font-bold gap-0.5">
+              <AlertTriangle className="w-2.5 h-2.5" />
+              Diff
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 shrink-0 font-medium">
+              <Clock className="w-2.5 h-2.5 mr-0.5" />
+              {stmt.status}
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1 border-t border-border/40 gap-1 font-sans">
+          <span className="truncate">
+            {stmt.period_start && stmt.period_end
+              ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
+              : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`}
+          </span>
+          <div className="flex items-center gap-1 shrink-0 font-mono">
+            <span className="font-medium text-muted-foreground">
+              {stmt.transaction_count} txns
+            </span>
+          </div>
+        </div>
+
+        {stmtDiscrepancy > 0.01 && (
+          <div className="mt-1 text-[9px] text-rose-600 font-bold flex items-center gap-0.5">
+            <AlertTriangle className="w-2.5 h-2.5" />
+            Diff: {formatCurrency(stmtDiscrepancy)}
+          </div>
+        )}
+      </button>
+    );
+  };
+
+  const statementsRibbon = (
+    <div className="bg-card border border-border rounded-xl shadow-xs overflow-hidden shrink-0">
+      <div className="py-2 px-3 sm:px-4 flex flex-row items-center justify-between border-b border-border bg-muted/20">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-5 h-5 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Landmark className="w-3 h-3" />
+          </div>
+          <span className="text-xs font-bold text-foreground">
+            Uploaded Statements ({statements.length})
+          </span>
+          {selectedStatement && (
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-muted-foreground border-l border-border pl-2.5 ml-1">
+              <span>Active:</span>
+              <span className="font-semibold text-foreground truncate max-w-[150px] md:max-w-[220px]" title={selectedStatement.source_filename}>
+                {selectedStatement.source_filename}
+              </span>
+              {selectedStatement.status === 'reconciled' ? (
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-1.5 py-0.2 rounded">
+                  <CheckCircle2 className="w-2.5 h-2.5" /> Balanced
+                </span>
+              ) : selectedStatement.status === 'reconcile_failed' ? (
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-600 font-bold bg-rose-500/10 px-1.5 py-0.2 rounded">
+                  <AlertTriangle className="w-2.5 h-2.5" /> Diff
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.2 rounded">
+                  {selectedStatement.status}
+                </span>
+              )}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* Scroll navigation arrows */}
+          <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => handleScrollStatements('left')}
+              className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer"
+              title="Scroll left"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-3 h-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => handleScrollStatements('right')}
+              className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer"
+              title="Scroll right"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          {/* Layout Mode Selector (Ribbon vs Sidebar) */}
+          <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setStatementLayoutMode('strip')}
+              className={cn(
+                "px-2 py-0.5 rounded text-xs transition-colors flex items-center gap-1 cursor-pointer",
+                statementLayoutMode === 'strip'
+                  ? "bg-primary text-primary-foreground font-bold shadow-2xs"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              title="Horizontal Ribbon view"
+            >
+              <GalleryHorizontal className="w-3 h-3" />
+              <span className="text-[10px] hidden md:inline">Ribbon</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatementLayoutMode('sidebar')}
+              className={cn(
+                "px-2 py-0.5 rounded text-xs transition-colors flex items-center gap-1 cursor-pointer",
+                statementLayoutMode === 'sidebar'
+                  ? "bg-primary text-primary-foreground font-bold shadow-2xs"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+              title="Side Panel view"
+            >
+              <PanelLeftClose className="w-3 h-3" />
+              <span className="text-[10px] hidden md:inline">Sidebar</span>
+            </button>
+          </div>
+
+          {onOpenUpload && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenUpload('bank_statement')}
+              className="h-6 text-[11px] font-semibold px-2 gap-1 text-primary hover:text-primary hover:bg-primary/5 border-primary/30"
+            >
+              <Upload className="w-3 h-3" />
+              <span>Upload</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="p-2 sm:p-2.5">
+        <div
+          ref={statementScrollRef}
+          className="flex items-center gap-2 overflow-x-auto scroll-smooth pb-0.5"
+        >
+          {isLoadingStatements && statements.length === 0 ? (
+            <div className="flex items-center gap-2 py-1">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="w-[220px] h-[52px] rounded-lg bg-muted/40 animate-pulse border border-border/50" />
+              ))}
+            </div>
+          ) : statements.length === 0 ? (
+            <div className="py-2.5 px-3 text-xs text-muted-foreground flex items-center gap-2">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <span>No bank statements uploaded yet.</span>
+              {onOpenUpload && (
+                <button
+                  type="button"
+                  onClick={() => onOpenUpload('bank_statement')}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  Upload your first statement
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {statements.map((stmt) => renderStatementChip(stmt, 'strip'))}
+
+              {onOpenUpload && (
+                <button
+                  type="button"
+                  onClick={() => onOpenUpload('bank_statement')}
+                  className="h-[52px] px-3 shrink-0 border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 rounded-lg flex items-center justify-center gap-1.5 text-muted-foreground hover:text-primary transition-all cursor-pointer group text-xs font-semibold select-none"
+                  title="Upload Bank Statement"
+                >
+                  <Upload className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                  <span className="text-[11px]">+ Upload File</span>
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const statementsSidebar = (
+    <Card className="overflow-hidden">
+      <CardHeader className="py-2.5 px-3 flex flex-row items-center justify-between border-b border-border bg-muted/20">
+        {!isSidebarCollapsed ? (
+          <>
+            <CardTitle className="text-xs font-bold flex items-center gap-1.5">
+              <Landmark className="w-3.5 h-3.5 text-primary" />
+              <span>Statements ({statements.length})</span>
+            </CardTitle>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setStatementLayoutMode('strip')}
+                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer"
+                title="Switch to Ribbon view"
+              >
+                <GalleryHorizontal className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSidebarCollapsed(true)}
+                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer"
+                title="Collapse sidebar"
+              >
+                <PanelLeftClose className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsSidebarCollapsed(false)}
+            className="w-full flex items-center justify-center p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer"
+            title="Expand statements sidebar"
+          >
+            <PanelLeftOpen className="w-4 h-4 text-primary" />
+          </button>
+        )}
+      </CardHeader>
+
+      {!isSidebarCollapsed && (
+        <CardBody className="p-2 space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto">
+          {isLoadingStatements && statements.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground flex flex-col items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <span className="text-xs">Loading statements...</span>
+            </div>
+          ) : statements.length === 0 ? (
+            <div className="py-6 px-3 text-center border-2 border-dashed border-border rounded-lg bg-muted/20 flex flex-col items-center gap-1.5">
+              <FileText className="w-4 h-4 text-muted-foreground" />
+              <p className="font-bold text-foreground text-xs">No Statements</p>
+              {onOpenUpload && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onOpenUpload('bank_statement')}
+                  className="mt-1 h-6 text-xs px-2"
+                >
+                  <Upload className="w-3 h-3 mr-1" />
+                  Upload
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              {statements.map((stmt) => renderStatementChip(stmt, 'sidebar'))}
+
+              {onOpenUpload && (
+                <button
+                  type="button"
+                  onClick={() => onOpenUpload('bank_statement')}
+                  className="w-full py-2 px-3 border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 rounded-lg flex items-center justify-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>+ Upload Statement</span>
+                </button>
+              )}
+            </>
+          )}
+        </CardBody>
+      )}
+    </Card>
+  );
+
   return (
     <div
       className={cn(
@@ -399,125 +750,20 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
         </div>
       </div>
 
-      {/* Main Layout: Left Statements List | Right Transactions & Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-[330px_1fr] gap-6 items-start">
-        {/* Left Column: Statements List & Quick Drop */}
-        <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-border">
-              <CardTitle className="text-xs font-bold flex items-center gap-2">
-                <Landmark className="w-4 h-4 text-primary" />
-                Uploaded Statements ({statements.length})
-              </CardTitle>
-              {onOpenUpload && (
-                <button
-                  onClick={() => onOpenUpload('bank_statement')}
-                  className="text-[11px] text-primary hover:underline font-semibold flex items-center gap-1"
-                >
-                  + Upload
-                </button>
-              )}
-            </CardHeader>
-            <CardBody className="p-3 space-y-2.5 max-h-[calc(100vh-280px)] overflow-y-auto">
-              {isLoadingStatements && statements.length === 0 ? (
-                <div className="py-12 text-center text-muted-foreground flex flex-col items-center gap-2">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  <span className="text-xs">Loading statements...</span>
-                </div>
-              ) : statements.length === 0 ? (
-                <div className="py-10 px-4 text-center border-2 border-dashed border-border rounded-xl bg-muted/20 flex flex-col items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <p className="font-bold text-foreground text-xs">No Statements Uploaded</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Upload a PDF or image statement to extract transactions.
-                  </p>
-                  {onOpenUpload && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => onOpenUpload('bank_statement')}
-                      className="mt-2 h-7 text-xs"
-                    >
-                      <Upload className="w-3 h-3 mr-1" />
-                      Upload Statement
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                statements.map((stmt) => {
-                  const isSelected = stmt.id === selectedStatementId;
-                  const isReconciled = stmt.status === 'reconciled';
-                  const isFailed = stmt.status === 'reconcile_failed';
-                  const stmtDiscrepancy = stmt.reconciliation_details?.discrepancy ?? 0;
+      {/* Space-Efficient Statements Presentation: Horizontal Ribbon (Default) or Collapsible Side Panel */}
+      {statementLayoutMode === 'strip' && statementsRibbon}
 
-                  return (
-                    <div
-                      key={stmt.id}
-                      onClick={() => setSelectedStatementId(stmt.id)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        isSelected
-                          ? 'border-primary bg-primary/5 shadow-xs ring-1 ring-primary/40'
-                          : 'border-border bg-card hover:bg-muted/30 hover:border-muted-foreground/30'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate" title={stmt.source_filename}>
-                            {stmt.source_filename}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {stmt.period_start && stmt.period_end
-                              ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
-                              : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`}
-                          </p>
-                        </div>
-                        {isReconciled ? (
-                          <Badge variant="success" className="text-[9px] px-1.5 py-0 shrink-0 gap-1">
-                            <CheckCircle2 className="w-2.5 h-2.5" />
-                            Balanced
-                          </Badge>
-                        ) : isFailed ? (
-                          <Badge variant="destructive" className="text-[9px] px-1.5 py-0 shrink-0 gap-1">
-                            <AlertTriangle className="w-2.5 h-2.5" />
-                            Discrepancy
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-[9px] px-1.5 py-0 shrink-0 gap-1">
-                            <Clock className="w-2.5 h-2.5" />
-                            {stmt.status}
-                          </Badge>
-                        )}
-                      </div>
+      <div
+        className={cn(
+          statementLayoutMode === 'sidebar'
+            ? cn("grid grid-cols-1 gap-5 items-start w-full min-w-0", isSidebarCollapsed ? "lg:grid-cols-[48px_1fr]" : "lg:grid-cols-[250px_1fr]")
+            : "flex flex-col gap-5 min-w-0 w-full"
+        )}
+      >
+        {statementLayoutMode === 'sidebar' && statementsSidebar}
 
-                      <div className="mt-2.5 pt-2 border-t border-border/60 flex items-center justify-between text-[11px]">
-                        <span className="font-mono text-muted-foreground">
-                          {stmt.transaction_count} txns
-                        </span>
-                        {stmt.closing_balance !== null && stmt.closing_balance !== undefined && (
-                          <span className="font-mono font-semibold text-foreground">
-                            Close: {formatCurrency(stmt.closing_balance)}
-                          </span>
-                        )}
-                      </div>
-
-                      {stmtDiscrepancy > 0.01 && (
-                        <div className="mt-1 text-[10px] text-amber-600 font-medium flex items-center gap-1">
-                          <AlertTriangle className="w-2.5 h-2.5" />
-                          Diff: {formatCurrency(stmtDiscrepancy)}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        {/* Right Column: Statement Dashboard & Transactions */}
-        <div className="flex flex-col gap-5 min-w-0">
+        {/* Statement Dashboard & Transactions */}
+        <div className="flex flex-col gap-5 min-w-0 w-full">
           {selectedStatement ? (
             <>
               {/* Statement KPI Balance Cards */}
@@ -1133,7 +1379,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                                 size="sm"
                                 disabled={isReviewing}
                                 onClick={() => handleDuplicateAction(tx.id, 'approve')}
-                                className="h-8 text-xs px-3 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                className="h-8 text-xs px-3 shadow-xs"
                               >
                                 {isReviewing ? (
                                   <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
@@ -1159,7 +1405,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                 </div>
                 <h3 className="text-base font-bold text-foreground">Select or Upload a Bank Statement</h3>
                 <p className="text-xs text-muted-foreground">
-                  Choose an uploaded statement from the left sidebar to inspect its extracted transactions and balance reconciliation, or upload a new one.
+                  Choose an uploaded statement to inspect its extracted transactions and balance reconciliation, or upload a new one.
                 </p>
                 {onOpenUpload && (
                   <Button variant="primary" size="sm" onClick={() => onOpenUpload('bank_statement')} className="mt-2 text-xs">
