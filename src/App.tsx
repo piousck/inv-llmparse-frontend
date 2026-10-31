@@ -65,13 +65,16 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleOpenUpload = (initialType?: 'invoice' | 'bank_statement') => {
+  const [uploadInitialBankAccountId, setUploadInitialBankAccountId] = useState<string | undefined>();
+
+  const handleOpenUpload = (initialType?: 'invoice' | 'bank_statement', bankAccountId?: string) => {
     const selectedType =
       initialType ||
       (currentTab === 'bank' || documentSubTab === 'bank_statements'
         ? 'bank_statement'
         : 'invoice');
     setUploadInitialType(selectedType);
+    setUploadInitialBankAccountId(bankAccountId);
     if (selectedType === 'bank_statement') {
       setCurrentTab('bank');
       setDocumentSubTab('bank_statements');
@@ -399,7 +402,7 @@ export const App: React.FC = () => {
                         <BankReconciliationView
                           activeOrgId={activeOrgId}
                           refreshKey={bankRefreshKey}
-                          onOpenUpload={(type) => handleOpenUpload(type || 'bank_statement')}
+                          onOpenUpload={(type, bankAccountId) => handleOpenUpload(type || 'bank_statement', bankAccountId)}
                           onShowToast={showToast}
                           onSelectDocumentSubTab={handleSelectDocumentSubTab}
                           hideCategorySwitcher
@@ -482,6 +485,7 @@ export const App: React.FC = () => {
         activeOrgId={activeOrgId}
         activeOrg={activeOrg}
         initialType={uploadInitialType}
+        initialBankAccountId={uploadInitialBankAccountId}
         onSelectTab={(tab) => {
           setCurrentTab(tab);
           if (tab !== 'invoices') {

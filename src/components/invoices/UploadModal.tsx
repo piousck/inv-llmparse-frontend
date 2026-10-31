@@ -37,6 +37,7 @@ interface UploadModalProps {
   activeOrgId: string;
   activeOrg?: Organization;
   initialType?: 'invoice' | 'bank_statement';
+  initialBankAccountId?: string;
   onSelectTab?: (tab: NavTab) => void;
   onUploadSuccess: (invoiceId: string, allIds?: string[], targetTab?: NavTab) => void;
   onShowToast: (msg: string) => void;
@@ -48,6 +49,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   activeOrgId,
   activeOrg,
   initialType = 'invoice',
+  initialBankAccountId,
   onSelectTab,
   onUploadSuccess,
   onShowToast,
@@ -87,12 +89,22 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     if (activeOrgId) {
       apiService.listBankAccounts(activeOrgId).then((accs) => {
         setBankAccounts(accs);
-        if (accs.length > 0 && !selectedAccountId) {
-          setSelectedAccountId(accs[0].id);
+        if (accs.length > 0) {
+          if (initialBankAccountId && accs.some((a) => a.id === initialBankAccountId)) {
+            setSelectedAccountId(initialBankAccountId);
+          } else if (!selectedAccountId || !accs.some((a) => a.id === selectedAccountId)) {
+            setSelectedAccountId(accs[0].id);
+          }
         }
       });
     }
-  }, [activeOrgId]);
+  }, [activeOrgId, initialBankAccountId]);
+
+  useEffect(() => {
+    if (isOpen && initialBankAccountId) {
+      setSelectedAccountId(initialBankAccountId);
+    }
+  }, [isOpen, initialBankAccountId]);
 
   useEffect(() => {
     if (activeOrg?.industry) {

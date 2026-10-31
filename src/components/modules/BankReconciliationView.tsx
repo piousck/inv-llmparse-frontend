@@ -24,12 +24,16 @@ import {
   GalleryHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
+  Plus,
+  Building2,
+  Wallet,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { apiService } from '../../services/api';
 import {
+  BankAccountDto,
   BankStatementDto,
   BankTransactionDto,
   ReviewQueueItemDto,
@@ -39,10 +43,211 @@ import { formatCurrency, cn } from '../../lib/utils';
 import { DocumentSubTab } from '../layout/Sidebar';
 import { useDateFormat } from '../../lib/dateUtils';
 
+interface AddBankAccountModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  activeOrgId: string;
+  onAccountCreated: (account: BankAccountDto) => void;
+  onShowToast: (msg: string) => void;
+}
+
+const POPULAR_BANKS = [
+  'AIB',
+  'Bank of Ireland',
+  'Revolut',
+  'Permanent TSB',
+  'Barclays',
+  'HSBC',
+  'Ulster Bank',
+];
+
+const CURRENCIES = ['EUR', 'GBP', 'USD', 'CAD', 'AUD', 'CHF'];
+
+const AddBankAccountModal: React.FC<AddBankAccountModalProps> = ({
+  isOpen,
+  onClose,
+  activeOrgId,
+  onAccountCreated,
+  onShowToast,
+}) => {
+  const [bankName, setBankName] = useState('AIB');
+  const [accountName, setAccountName] = useState('');
+  const [currency, setCurrency] = useState('EUR');
+  const [accountNumberLast4, setAccountNumberLast4] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bankName.trim() || !accountName.trim()) {
+      onShowToast('Bank name and Account name are required');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const created = await apiService.createBankAccount(activeOrgId, {
+        bank_name: bankName.trim(),
+        name: accountName.trim(),
+        currency: currency.trim().toUpperCase(),
+        account_number_last4: accountNumberLast4.trim() || undefined,
+      });
+      onAccountCreated(created);
+      onShowToast(`Bank account "${created.name}" created successfully`);
+      onClose();
+    } catch (err: any) {
+      console.error('Failed to create bank account:', err);
+      onShowToast(err.message || 'Failed to create bank account');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+        <div className="py-3 px-4 border-b border-border bg-muted/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Landmark className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Add Bank Account</h3>
+              <p className="text-[11px] text-muted-foreground">Configure a bank account for statements & reconciliation</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-3.5">
+          {/* Quick Bank Presets */}
+          <div>
+            <label className="text-[11px] font-bold text-muted-foreground block mb-1">
+              Select Bank or Institution
+            </label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {POPULAR_BANKS.map((bank) => (
+                <button
+                  key={bank}
+                  type="button"
+                  onClick={() => setBankName(bank)}
+                  className={cn(
+                    "px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all border cursor-pointer",
+                    bankName === bank
+                      ? "bg-primary text-primary-foreground border-primary shadow-2xs"
+                      : "bg-muted/40 hover:bg-muted text-foreground border-border/60"
+                  )}
+                >
+                  {bank}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              placeholder="Or enter bank name..."
+              className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:border-primary outline-hidden"
+              required
+            />
+          </div>
+
+          {/* Account Name */}
+          <div>
+            <label className="text-[11px] font-bold text-muted-foreground block mb-1">
+              Account Label / Purpose
+            </label>
+            <input
+              type="text"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="e.g. Main Operating, Payroll, USD Sales, Escrow"
+              className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:border-primary outline-hidden"
+              required
+            />
+          </div>
+
+          {/* Currency and Last 4 digits */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground block mb-1">
+                Currency
+              </label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs focus:ring-1 focus:ring-primary focus:border-primary outline-hidden cursor-pointer"
+              >
+                {CURRENCIES.map((cur) => (
+                  <option key={cur} value={cur}>
+                    {cur} ({cur === 'EUR' ? '€' : cur === 'USD' ? '$' : cur === 'GBP' ? '£' : cur})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-muted-foreground block mb-1">
+                Last 4 Digits <span className="font-normal text-muted-foreground/70">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                maxLength={4}
+                value={accountNumberLast4}
+                onChange={(e) => setAccountNumberLast4(e.target.value.replace(/\D/g, ''))}
+                placeholder="e.g. 4321"
+                className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs font-mono focus:ring-1 focus:ring-primary focus:border-primary outline-hidden"
+              />
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="text-xs h-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={isSubmitting || !bankName.trim() || !accountName.trim()}
+              className="text-xs h-8 font-bold gap-1.5"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5" />
+                  Create Account
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 interface BankReconciliationViewProps {
   activeOrgId?: string;
   refreshKey?: number;
-  onOpenUpload?: (initialType?: 'invoice' | 'bank_statement') => void;
+  onOpenUpload?: (initialType?: 'invoice' | 'bank_statement', bankAccountId?: string) => void;
   onShowToast: (msg: string) => void;
   onSelectDocumentSubTab?: (subTab: DocumentSubTab) => void;
   hideCategorySwitcher?: boolean;
@@ -57,6 +262,17 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
   hideCategorySwitcher = false,
 }) => {
   const { formatDate } = useDateFormat();
+  const [bankAccounts, setBankAccounts] = useState<BankAccountDto[]>([]);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('invparse_selected_bank_account') || 'all';
+    } catch {
+      return 'all';
+    }
+  });
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false);
+  const [isAddAccountModalOpen, setIsAddAccountModalOpen] = useState<boolean>(false);
+
   const [statements, setStatements] = useState<BankStatementDto[]>([]);
   const [selectedStatementId, setSelectedStatementId] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<BankTransactionDto[]>([]);
@@ -141,11 +357,35 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
     return formatDate(dStr);
   };
 
-  // 1. Fetch statements on mount or when activeOrgId / refreshKey changes
+  // 1. Fetch bank accounts & statements on mount or when activeOrgId / refreshKey changes
   useEffect(() => {
     if (!activeOrgId) return;
+    loadAccounts();
     loadStatements();
   }, [activeOrgId, refreshKey]);
+
+  const loadAccounts = async () => {
+    if (!activeOrgId) return;
+    setIsLoadingAccounts(true);
+    try {
+      const accs = await apiService.listBankAccounts(activeOrgId);
+      setBankAccounts(accs);
+      if (selectedBankAccountId !== 'all' && accs.length > 0 && !accs.some((a) => a.id === selectedBankAccountId)) {
+        setSelectedBankAccountId('all');
+      }
+    } catch (err) {
+      console.error('Failed to load bank accounts:', err);
+    } finally {
+      setIsLoadingAccounts(false);
+    }
+  };
+
+  const handleSelectAccount = (accId: string) => {
+    setSelectedBankAccountId(accId);
+    try {
+      localStorage.setItem('invparse_selected_bank_account', accId);
+    } catch {}
+  };
 
   const loadStatements = async () => {
     if (!activeOrgId) return;
@@ -153,17 +393,6 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
     try {
       const list = await apiService.listBankStatements(activeOrgId);
       setStatements(list);
-      if (list.length > 0) {
-        setSelectedStatementId((prev) => {
-          if (prev && list.some((s) => s.id === prev)) {
-            return prev;
-          }
-          return list[0].id;
-        });
-      } else {
-        setSelectedStatementId(null);
-        setTransactions([]);
-      }
     } catch (err) {
       console.error('Failed to load bank statements:', err);
       onShowToast('Could not load bank statements');
@@ -171,6 +400,58 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
       setIsLoadingStatements(false);
     }
   };
+
+  // Filter statements according to selected bank account
+  const displayedStatements = useMemo(() => {
+    if (selectedBankAccountId === 'all') {
+      return statements;
+    }
+    return statements.filter((s) => s.bank_account_id === selectedBankAccountId);
+  }, [statements, selectedBankAccountId]);
+
+  // Synchronize active statement ID whenever displayedStatements changes
+  useEffect(() => {
+    if (displayedStatements.length > 0) {
+      setSelectedStatementId((prev) => {
+        if (prev && displayedStatements.some((s) => s.id === prev)) {
+          return prev;
+        }
+        return displayedStatements[0].id;
+      });
+    } else {
+      setSelectedStatementId(null);
+      setTransactions([]);
+    }
+  }, [displayedStatements]);
+
+  // Selected bank account metadata and currency
+  const selectedAccount = useMemo(() => {
+    if (!selectedBankAccountId || selectedBankAccountId === 'all') return null;
+    return bankAccounts.find((a) => a.id === selectedBankAccountId) || null;
+  }, [bankAccounts, selectedBankAccountId]);
+
+  const activeCurrency = useMemo(() => {
+    if (selectedAccount?.currency) return selectedAccount.currency;
+    return 'EUR';
+  }, [selectedAccount]);
+
+  const statementCountsByAccount = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const s of statements) {
+      if (s.bank_account_id) {
+        counts[s.bank_account_id] = (counts[s.bank_account_id] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [statements]);
+
+  const accountMap = useMemo(() => {
+    const map = new Map<string, BankAccountDto>();
+    for (const a of bankAccounts) {
+      map.set(a.id, a);
+    }
+    return map;
+  }, [bankAccounts]);
 
   // 2. Fetch transactions & review queue when selected statement changes
   useEffect(() => {
@@ -220,8 +501,8 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
 
   // Selected statement object
   const selectedStatement = useMemo(() => {
-    return statements.find((s) => s.id === selectedStatementId) || null;
-  }, [statements, selectedStatementId]);
+    return displayedStatements.find((s) => s.id === selectedStatementId) || null;
+  }, [displayedStatements, selectedStatementId]);
 
   // Handle Review Allocation Action
   const handleReviewAction = async (
@@ -364,6 +645,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
     const isReconciled = stmt.status === 'reconciled';
     const isFailed = stmt.status === 'reconcile_failed';
     const stmtDiscrepancy = stmt.reconciliation_details?.discrepancy ?? 0;
+    const stmtAccount = stmt.bank_account_id ? accountMap.get(stmt.bank_account_id) : null;
 
     const dateLabel =
       stmt.period_start && stmt.period_end
@@ -394,6 +676,14 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
           >
             {dateLabel}
           </span>
+          {selectedBankAccountId === 'all' && stmtAccount && (
+            <span
+              className="text-[8px] font-bold px-1 py-0 rounded bg-muted text-foreground/80 shrink-0 uppercase tracking-tight"
+              title={`Account: ${stmtAccount.bank_name || stmtAccount.name}`}
+            >
+              {stmtAccount.bank_name || stmtAccount.name}
+            </span>
+          )}
         </div>
 
         {/* Bottom: File icon + File name & Status Badge */}
@@ -429,7 +719,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
         {stmtDiscrepancy > 0.01 && (
           <div className="mt-0.5 text-[8px] text-rose-600 font-bold flex items-center gap-0.5">
             <AlertTriangle className="w-2 h-2" />
-            Diff: {formatCurrency(stmtDiscrepancy)}
+            Diff: {formatCurrency(stmtDiscrepancy, activeCurrency)}
           </div>
         )}
       </button>
@@ -444,7 +734,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
             <Landmark className="w-3 h-3" />
           </div>
           <span className="text-xs font-bold text-foreground">
-            Uploaded Statements ({statements.length})
+            Uploaded Statements ({displayedStatements.length})
           </span>
           {selectedStatement && (
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[10.5px] text-muted-foreground border-l border-border pl-2 ml-0.5">
@@ -540,8 +830,8 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onOpenUpload('bank_statement')}
-              className="h-6 text-[10.5px] font-semibold px-2 gap-1 text-primary hover:text-primary hover:bg-primary/5 border-primary/30"
+              onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
+              className="h-6 text-[10.5px] font-semibold px-2 gap-1 text-primary hover:text-primary hover:bg-primary/5 border-primary/30 cursor-pointer"
             >
               <Upload className="w-3 h-3" />
               <span>Upload</span>
@@ -561,30 +851,34 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                 <div key={n} className="w-[185px] h-[44px] rounded-lg bg-muted/40 animate-pulse border border-border/50" />
               ))}
             </div>
-          ) : statements.length === 0 ? (
+          ) : displayedStatements.length === 0 ? (
             <div className="py-2 px-2.5 text-xs text-muted-foreground flex items-center gap-2">
               <FileText className="w-4 h-4 text-muted-foreground" />
-              <span>No bank statements uploaded yet.</span>
+              <span>
+                {selectedAccount
+                  ? `No bank statements uploaded for ${selectedAccount.name} yet.`
+                  : 'No bank statements uploaded yet.'}
+              </span>
               {onOpenUpload && (
                 <button
                   type="button"
-                  onClick={() => onOpenUpload('bank_statement')}
-                  className="text-primary hover:underline font-semibold"
+                  onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
+                  className="text-primary hover:underline font-semibold cursor-pointer"
                 >
-                  Upload your first statement
+                  Upload statement
                 </button>
               )}
             </div>
           ) : (
             <>
-              {statements.map((stmt) => renderStatementChip(stmt, 'strip'))}
+              {displayedStatements.map((stmt) => renderStatementChip(stmt, 'strip'))}
 
               {onOpenUpload && (
                 <button
                   type="button"
-                  onClick={() => onOpenUpload('bank_statement')}
+                  onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
                   className="h-[44px] px-2.5 shrink-0 border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 rounded-lg flex items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-all cursor-pointer group text-xs font-semibold select-none"
-                  title="Upload Bank Statement"
+                  title={selectedAccount ? `Upload to ${selectedAccount.name}` : "Upload Bank Statement"}
                 >
                   <Upload className="w-3 h-3 group-hover:scale-110 transition-transform" />
                   <span className="text-[10.5px]">+ Upload File</span>
@@ -604,7 +898,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
           <>
             <CardTitle className="text-xs font-bold flex items-center gap-1.5">
               <Landmark className="w-3.5 h-3.5 text-primary" />
-              <span>Statements ({statements.length})</span>
+              <span>Statements ({displayedStatements.length})</span>
             </CardTitle>
             <div className="flex items-center gap-1">
               <button
@@ -644,16 +938,18 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
               <span className="text-xs">Loading statements...</span>
             </div>
-          ) : statements.length === 0 ? (
+          ) : displayedStatements.length === 0 ? (
             <div className="py-5 px-2.5 text-center border-2 border-dashed border-border rounded-lg bg-muted/20 flex flex-col items-center gap-1.5">
               <FileText className="w-4 h-4 text-muted-foreground" />
-              <p className="font-bold text-foreground text-xs">No Statements</p>
+              <p className="font-bold text-foreground text-xs">
+                {selectedAccount ? `No Statements in ${selectedAccount.name}` : 'No Statements'}
+              </p>
               {onOpenUpload && (
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={() => onOpenUpload('bank_statement')}
-                  className="mt-1 h-6 text-xs px-2"
+                  onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
+                  className="mt-1 h-6 text-xs px-2 cursor-pointer"
                 >
                   <Upload className="w-3 h-3 mr-1" />
                   Upload
@@ -662,12 +958,12 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
             </div>
           ) : (
             <>
-              {statements.map((stmt) => renderStatementChip(stmt, 'sidebar'))}
+              {displayedStatements.map((stmt) => renderStatementChip(stmt, 'sidebar'))}
 
               {onOpenUpload && (
                 <button
                   type="button"
-                  onClick={() => onOpenUpload('bank_statement')}
+                  onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
                   className="w-full py-1.5 px-2 border border-dashed border-border hover:border-primary/50 hover:bg-primary/5 rounded-lg flex items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                 >
                   <Upload className="w-3 h-3" />
@@ -757,14 +1053,122 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
             <Button
               variant="primary"
               size="sm"
-              onClick={() => onOpenUpload('bank_statement')}
-              className="h-8 text-xs font-bold gap-1.5 shadow-sm"
+              onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
+              className="h-8 text-xs font-bold gap-1.5 shadow-sm cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" />
               Upload Bank Statement
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Bank Account Switcher Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2 bg-card rounded-xl border border-border shadow-xs shrink-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar min-w-0 flex-1">
+          <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1 shrink-0 select-none">
+            <Wallet className="w-3.5 h-3.5 text-primary" />
+            <span>Account:</span>
+            {isLoadingAccounts && <Loader2 className="w-3 h-3 animate-spin text-primary shrink-0 ml-0.5" />}
+          </div>
+
+          {/* All Accounts Pill */}
+          <button
+            type="button"
+            onClick={() => handleSelectAccount('all')}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 select-none",
+              selectedBankAccountId === 'all'
+                ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                : "bg-muted/60 hover:bg-muted text-foreground/80 hover:text-foreground border border-border/60"
+            )}
+          >
+            <Building2 className="w-3 h-3" />
+            <span>All Accounts</span>
+            <span
+              className={cn(
+                "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+                selectedBankAccountId === 'all'
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-background text-muted-foreground"
+              )}
+            >
+              {statements.length}
+            </span>
+          </button>
+
+          {/* Individual Bank Account Pills */}
+          {bankAccounts.map((acc) => {
+            const isSelected = selectedBankAccountId === acc.id;
+            const count = statementCountsByAccount[acc.id] || 0;
+            return (
+              <button
+                key={acc.id}
+                type="button"
+                onClick={() => handleSelectAccount(acc.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 select-none",
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-xs font-bold"
+                    : "bg-muted/60 hover:bg-muted text-foreground/80 hover:text-foreground border border-border/60"
+                )}
+                title={`${acc.bank_name} • ${acc.name} (${acc.currency})`}
+              >
+                <Landmark className="w-3 h-3" />
+                <span className="truncate max-w-[150px] sm:max-w-[200px]">
+                  {acc.name}
+                  {acc.account_number_last4 ? ` ···${acc.account_number_last4}` : ''}
+                </span>
+                <span
+                  className={cn(
+                    "text-[9px] uppercase font-mono px-1 py-0.2 rounded font-bold",
+                    isSelected
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {acc.currency}
+                </span>
+                <span
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.2 rounded-full font-bold",
+                    isSelected
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-background text-muted-foreground"
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Add Account Button */}
+          {activeOrgId && (
+            <button
+              type="button"
+              onClick={() => setIsAddAccountModalOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border border-dashed border-border hover:border-primary/60 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-colors cursor-pointer whitespace-nowrap shrink-0 select-none"
+              title="Add new bank account"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Add Account</span>
+            </button>
+          )}
+        </div>
+
+        {/* Active Account Quick Context */}
+        {selectedAccount && (
+          <div className="flex items-center gap-2 self-end sm:self-auto text-[11px] text-muted-foreground shrink-0 border-t sm:border-t-0 sm:border-l border-border pt-1.5 sm:pt-0 sm:pl-3">
+            <span>Active:</span>
+            <span className="font-bold text-foreground">
+              {selectedAccount.name}
+            </span>
+            <span className="text-[10px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.2 rounded">
+              {selectedAccount.currency}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Space-Efficient Statements Presentation: Horizontal Ribbon (Default) or Collapsible Side Panel */}
@@ -792,7 +1196,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                       Opening Balance
                     </span>
                     <span className="text-base sm:text-lg font-black font-mono text-foreground mt-0.5 block truncate">
-                      {formatCurrency(selectedStatement.opening_balance)}
+                      {formatCurrency(selectedStatement.opening_balance, activeCurrency)}
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5 block truncate">
                       {selectedStatement.period_start || 'Start of period'}
@@ -808,7 +1212,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                       Money In (Credits)
                     </span>
                     <span className="text-base sm:text-lg font-black font-mono text-emerald-600 mt-0.5 block truncate">
-                      +{formatCurrency(totalCredits)}
+                      +{formatCurrency(totalCredits, activeCurrency)}
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5 block">
                       {creditsCount} incoming txns
@@ -824,7 +1228,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                       Money Out (Debits)
                     </span>
                     <span className="text-base sm:text-lg font-black font-mono text-rose-600 mt-0.5 block truncate">
-                      -{formatCurrency(totalDebits)}
+                      -{formatCurrency(totalDebits, activeCurrency)}
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5 block">
                       {debitsCount} outgoing txns
@@ -845,12 +1249,12 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                          <AlertTriangle className="w-2.5 h-2.5" /> Diff {formatCurrency(discrepancy)}
+                          <AlertTriangle className="w-2.5 h-2.5" /> Diff {formatCurrency(discrepancy, activeCurrency)}
                         </span>
                       )}
                     </div>
                     <span className="text-base sm:text-lg font-black font-mono text-foreground mt-0.5 block truncate">
-                      {formatCurrency(selectedStatement.closing_balance)}
+                      {formatCurrency(selectedStatement.closing_balance, activeCurrency)}
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5 block truncate">
                       {selectedStatement.period_end || 'End of period'}
@@ -1078,13 +1482,13 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                                   </td>
                                   <td className="px-2.5 py-2 text-right font-mono font-semibold text-[11px] whitespace-nowrap">
                                     {isDebit ? (
-                                      <span className="text-rose-600">-{formatCurrency(amt)}</span>
+                                      <span className="text-rose-600">-{formatCurrency(amt, activeCurrency)}</span>
                                     ) : (
-                                      <span className="text-emerald-600">+{formatCurrency(amt)}</span>
+                                      <span className="text-emerald-600">+{formatCurrency(amt, activeCurrency)}</span>
                                     )}
                                   </td>
                                   <td className="px-2.5 py-2 text-right font-mono text-[11px] text-muted-foreground whitespace-nowrap">
-                                    {runningBal !== null ? formatCurrency(runningBal) : '—'}
+                                    {runningBal !== null ? formatCurrency(runningBal, activeCurrency) : '—'}
                                   </td>
                                 </tr>
                               );
@@ -1167,7 +1571,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                               </div>
                               <div className="flex items-center gap-2">
                                 <span className="font-mono font-bold text-rose-600">
-                                  -{formatCurrency(tx.amount)}
+                                  -{formatCurrency(tx.amount, activeCurrency)}
                                 </span>
                                 <Badge variant="secondary" className="text-[10px]">
                                   {item.current_allocation?.status || 'unmatched'}
@@ -1191,7 +1595,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                                         {cand.invoice_number || 'INV'} • {cand.supplier_name}
                                       </p>
                                       <p className="text-[10px] text-muted-foreground">
-                                        Due: {formatCurrency(cand.balance_remaining)} | Confidence:{' '}
+                                        Due: {formatCurrency(cand.balance_remaining, activeCurrency)} | Confidence:{' '}
                                         {Math.round(Number(cand.confidence_score) * 100)}% ({cand.match_method})
                                       </p>
                                     </div>
@@ -1220,7 +1624,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                               </div>
                             ) : (
                               <div className="text-[11px] text-muted-foreground italic py-1">
-                                No open purchase invoices found matching amount {formatCurrency(tx.amount)}.
+                                No open purchase invoices found matching amount {formatCurrency(tx.amount, activeCurrency)}.
                               </div>
                             )}
                           </div>
@@ -1278,7 +1682,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                                   }`}
                                 >
                                   {tx.direction === 'credit' ? '+' : '-'}
-                                  {formatCurrency(tx.amount)}
+                                  {formatCurrency(tx.amount, activeCurrency)}
                                 </span>
                               </div>
                             </div>
@@ -1306,7 +1710,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                                     <span className="text-muted-foreground">Amount:</span>
                                     <span className="font-mono font-bold">
                                       {tx.direction === 'credit' ? '+' : '-'}
-                                      {formatCurrency(tx.amount)}
+                                      {formatCurrency(tx.amount, activeCurrency)}
                                     </span>
                                   </div>
                                   <div className="flex justify-between">
@@ -1348,7 +1752,7 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                                         <span className="text-muted-foreground">Amount:</span>
                                         <span className="font-mono font-bold">
                                           {orig.direction === 'credit' ? '+' : '-'}
-                                          {formatCurrency(orig.amount)}
+                                          {formatCurrency(orig.amount, activeCurrency)}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
@@ -1420,13 +1824,22 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
                   <Landmark className="w-6 h-6" />
                 </div>
-                <h3 className="text-base font-bold text-foreground">Select or Upload a Bank Statement</h3>
+                <h3 className="text-base font-bold text-foreground">
+                  {selectedAccount ? `No Statements in ${selectedAccount.name}` : 'Select or Upload a Bank Statement'}
+                </h3>
                 <p className="text-xs text-muted-foreground">
-                  Choose an uploaded statement to inspect its extracted transactions and balance reconciliation, or upload a new one.
+                  {selectedAccount
+                    ? `Upload a bank statement file for ${selectedAccount.name} (${selectedAccount.currency}) to inspect extracted transactions and run balance reconciliation.`
+                    : 'Choose an uploaded statement to inspect its extracted transactions and balance reconciliation, or upload a new one.'}
                 </p>
                 {onOpenUpload && (
-                  <Button variant="primary" size="sm" onClick={() => onOpenUpload('bank_statement')} className="mt-2 text-xs">
-                    <Upload className="w-3.5 h-3.5 mr-1.5" />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => onOpenUpload('bank_statement', selectedAccount?.id)}
+                    className="mt-2 text-xs font-bold gap-1.5 cursor-pointer"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
                     Upload Statement
                   </Button>
                 )}
@@ -1435,6 +1848,23 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* Add Bank Account Modal */}
+      {activeOrgId && (
+        <AddBankAccountModal
+          isOpen={isAddAccountModalOpen}
+          onClose={() => setIsAddAccountModalOpen(false)}
+          activeOrgId={activeOrgId}
+          onAccountCreated={(newAcc) => {
+            setBankAccounts((prev) => [newAcc, ...prev.filter((a) => a.id !== newAcc.id)]);
+            setSelectedBankAccountId(newAcc.id);
+            try {
+              localStorage.setItem('invparse_selected_bank_account', newAcc.id);
+            } catch {}
+          }}
+          onShowToast={onShowToast}
+        />
+      )}
     </div>
   );
 };
