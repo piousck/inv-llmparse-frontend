@@ -380,16 +380,20 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
             : "border-border bg-card hover:bg-muted/40 hover:border-border/80 text-card-foreground"
         )}
       >
+        {/* Top: Statement Date Period & Status Badge */}
         <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            {getFileIcon(stmt.source_filename)}
-            <span
-              className="text-xs font-bold truncate text-foreground"
-              title={stmt.source_filename}
-            >
-              {stmt.source_filename}
-            </span>
-          </div>
+          <span
+            className="text-xs font-bold truncate text-foreground min-w-0 flex-1"
+            title={
+              stmt.period_start && stmt.period_end
+                ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
+                : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`
+            }
+          >
+            {stmt.period_start && stmt.period_end
+              ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
+              : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`}
+          </span>
           {isReconciled ? (
             <Badge variant="success" className="text-[9px] px-1.5 py-0 h-4 shrink-0 font-bold gap-0.5">
               <CheckCircle2 className="w-2.5 h-2.5" />
@@ -408,12 +412,17 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1 border-t border-border/40 gap-1 font-sans">
-          <span className="truncate">
-            {stmt.period_start && stmt.period_end
-              ? `${formatTxnDate(stmt.period_start)} – ${formatTxnDate(stmt.period_end)}`
-              : `Uploaded ${new Date(stmt.uploaded_at).toLocaleDateString()}`}
-          </span>
+        {/* Bottom: File icon + File name & Txn count */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 pt-1 border-t border-border/40 gap-1.5 font-sans">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            {getFileIcon(stmt.source_filename)}
+            <span
+              className="truncate font-medium text-muted-foreground"
+              title={stmt.source_filename}
+            >
+              {stmt.source_filename}
+            </span>
+          </div>
           <div className="flex items-center gap-1 shrink-0 font-mono">
             <span className="font-medium text-muted-foreground">
               {stmt.transaction_count} txns
@@ -444,8 +453,20 @@ export const BankReconciliationView: React.FC<BankReconciliationViewProps> = ({
           {selectedStatement && (
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] text-muted-foreground border-l border-border pl-2.5 ml-1">
               <span>Active:</span>
-              <span className="font-semibold text-foreground truncate max-w-[150px] md:max-w-[220px]" title={selectedStatement.source_filename}>
-                {selectedStatement.source_filename}
+              <span
+                className="font-semibold text-foreground truncate max-w-[170px] md:max-w-[240px]"
+                title={
+                  selectedStatement.period_start && selectedStatement.period_end
+                    ? `${formatTxnDate(selectedStatement.period_start)} – ${formatTxnDate(selectedStatement.period_end)} (${selectedStatement.source_filename})`
+                    : selectedStatement.source_filename
+                }
+              >
+                {selectedStatement.period_start && selectedStatement.period_end
+                  ? `${formatTxnDate(selectedStatement.period_start)} – ${formatTxnDate(selectedStatement.period_end)}`
+                  : selectedStatement.source_filename}
+              </span>
+              <span className="text-[10px] text-muted-foreground truncate max-w-[120px]" title={selectedStatement.source_filename}>
+                ({selectedStatement.source_filename})
               </span>
               {selectedStatement.status === 'reconciled' ? (
                 <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-1.5 py-0.2 rounded">
